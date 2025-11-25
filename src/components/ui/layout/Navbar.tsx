@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -22,6 +23,10 @@ interface AuthUser {
 
 export default function Navbar() {
   const user = useAuthStore((state) => state.user);
+  const location = useLocation();
+
+  const isExplorePage = location.pathname === "/";
+  const isMyProjectsPage = location.pathname === "/my-projects";
 
   return (
     <nav className="bg-white border-b sticky top-0 z-10">
@@ -31,14 +36,14 @@ export default function Navbar() {
         </a>
 
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" asChild>
+          <Button variant={isExplorePage ? "secondary" : "ghost"} asChild>
             <a href="/" className="flex items-center gap-2">
               <Compass />
               <span>Explore</span>
             </a>
           </Button>
 
-          <Button variant="secondary" asChild>
+          <Button variant={isMyProjectsPage ? "secondary" : "ghost"} asChild>
             <a href="/my-projects" className="flex items-center gap-2">
               <FolderKanban />
               <span>My Projects</span>
