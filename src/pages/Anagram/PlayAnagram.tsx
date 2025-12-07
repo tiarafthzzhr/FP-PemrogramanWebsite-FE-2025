@@ -12,6 +12,8 @@ import {
   Home,
   X,
   Lightbulb,
+  Pause,
+  Play,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
@@ -91,6 +93,7 @@ const PlayAnagram = () => {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [globalHintsUsed, setGlobalHintsUsed] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Track which questions have been answered (by question_id)
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(
@@ -112,13 +115,13 @@ const PlayAnagram = () => {
 
   // --- LOGIC STOPWATCH ---
   useEffect(() => {
-    if (!isLoading && !gameFinished) {
+    if (!isLoading && !gameFinished && !isPaused) {
       const timer = setInterval(() => {
         setTimeElapsed((prevTime: number) => prevTime + 1);
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [isLoading, gameFinished]);
+  }, [isLoading, gameFinished, isPaused]);
 
   // --- SOUND EFFECTS ---
   const playSound = (type: "pop" | "error" | "success") => {
@@ -644,11 +647,13 @@ const PlayAnagram = () => {
   };
 
   const handleExit = () => {
+    setIsPaused(true);
     setShowExitDialog(true);
   };
 
   const confirmExit = async () => {
     setShowExitDialog(false);
+    // Note: No need to resume paused state as we are navigating away
 
     // POST request to increment play count
     try {
@@ -666,6 +671,11 @@ const PlayAnagram = () => {
     }
 
     navigate("/");
+  };
+
+  const cancelExit = () => {
+    setShowExitDialog(false);
+    setIsPaused(false);
   };
 
   const handlePlayAgain = () => {
@@ -817,8 +827,17 @@ const PlayAnagram = () => {
         </div>
       )}
 
-      {/* HEADER */}
-      <div className="w-full max-w-2xl flex justify-between items-center text-slate-700">
+      {/* Header */}
+      <div className="w-full max-w-2xl flex justify-between items-center text-slate-700 mb-6 relative">
+        {/* Pause Button */}
+        <button
+          onClick={() => setIsPaused(true)}
+          className="p-2 rounded-full bg-white shadow-sm hover:bg-slate-100 transition text-slate-600"
+          title="Pause Game"
+        >
+          <Pause className="w-6 h-6" />
+        </button>
+
         {/* Stopwatch */}
         <div className="flex items-center gap-2 font-mono text-xl bg-white px-4 py-2 rounded-lg shadow-sm">
           <Clock className="w-5 h-5 text-slate-500" />
@@ -1052,7 +1071,9 @@ const PlayAnagram = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel className="px-6 py-2">Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelExit} className="px-6 py-2">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmExit}
               className="bg-red-600 hover:bg-red-700 px-6 py-2"
@@ -1062,6 +1083,31 @@ const PlayAnagram = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PAUSE OVERLAY */}
+      {isPaused && !showExitDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-sm w-full text-center m-4 animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Pause className="w-10 h-10 text-blue-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-2">
+              Game Paused
+            </h2>
+            <p className="text-slate-500 mb-8">
+              Take a break! Your progress is saved.
+            </p>
+
+            <Button
+              onClick={() => setIsPaused(false)}
+              className="w-full py-6 text-lg rounded-xl bg-blue-600 hover:bg-blue-700"
+            >
+              <Play className="w-5 h-5 mr-2 fill-current" />
+              Resume Game
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
