@@ -23,52 +23,58 @@ export function GameHeader({ timer, score, onExit }: GameHeaderProps) {
   };
 
   return (
-    <div className="bg-white h-fit w-full flex justify-between items-center px-8 py-4 shadow-sm">
-      <div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="hidden md:flex"
-          onClick={onExit}
-        >
-          <ArrowLeft /> Exit Game
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="block md:hidden"
-          onClick={onExit}
-        >
-          <ArrowLeft />
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="text-2xl font-bold text-gray-900">
-          {formatTime(timer)}
+    <div className="sticky top-0 z-10 w-full bg-white/5 backdrop-blur-xl border-b border-cyan-400/20 shadow-[0_8px_40px_-24px_rgba(0,255,255,0.5)]">
+      <div className="flex justify-between items-center px-4 sm:px-8 py-4">
+        <div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="hidden md:flex text-cyan-100 hover:text-white hover:bg-cyan-500/10"
+            onClick={onExit}
+          >
+            <ArrowLeft /> Exit Game
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="block md:hidden text-cyan-100 hover:text-white hover:bg-cyan-500/10"
+            onClick={onExit}
+          >
+            <ArrowLeft />
+          </Button>
         </div>
-        <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
-          <span>✓</span>
-          <span>{score}</span>
-        </div>
-      </div>
 
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="ghost" className="p-2">
-          <Volume2 className="w-5 h-5" />
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="p-2"
-          onClick={toggleFullscreen}
-        >
-          {isFullscreen ? (
-            <Minimize2 className="w-5 h-5" />
-          ) : (
-            <Maximize2 className="w-5 h-5" />
-          )}
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="text-2xl font-bold text-cyan-200 drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]">
+            {formatTime(timer)}
+          </div>
+          <div className="flex items-center gap-2 text-lg font-semibold text-emerald-200">
+            <span className="text-emerald-400">✓</span>
+            <span>{score}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="p-2 text-cyan-100 hover:text-white hover:bg-cyan-500/10"
+          >
+            <Volume2 className="w-5 h-5" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="p-2 text-cyan-100 hover:text-white hover:bg-cyan-500/10"
+            onClick={toggleFullscreen}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="w-5 h-5" />
+            ) : (
+              <Maximize2 className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

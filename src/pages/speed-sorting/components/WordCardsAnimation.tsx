@@ -99,21 +99,22 @@ export function WordCardsAnimation({
                   canDrag ? (e) => onDragStart(e, word.id) : undefined
                 }
                 onDragEnd={canDrag ? onDragEnd : undefined}
-                className={`rounded-lg sm:rounded-xl text-sm sm:text-lg lg:text-2xl font-semibold sm:font-bold transition-all shrink-0 
+                className={`relative overflow-hidden rounded-lg sm:rounded-xl text-sm sm:text-lg lg:text-2xl font-semibold sm:font-bold transition-all shrink-0 
                   w-[120px] h-20 sm:w-[150px] sm:h-[100px] lg:w-[200px] lg:h-[140px] 
                   flex items-center justify-center ${
                     !word.completed
-                      ? `bg-white text-black border sm:border-2 border-gray-300 cursor-move shadow-sm sm:shadow-md ${
+                      ? `bg-white/5 text-slate-100 border sm:border-2 border-cyan-400/30 cursor-move shadow-[0_15px_60px_-40px_rgba(59,130,246,0.9)] ${
                           draggedItem
                             ? ""
-                            : "hover:border-gray-500 hover:shadow-md sm:hover:shadow-lg"
+                            : "hover:border-cyan-200/80 hover:shadow-[0_20px_80px_-50px_rgba(16,185,129,0.9)]"
                         }`
-                      : "bg-green-100 text-green-600 border sm:border-2 border-green-300 shadow-sm sm:shadow-md"
+                      : "bg-emerald-500/15 text-emerald-200 border sm:border-2 border-emerald-300/70 shadow-[0_15px_60px_-45px_rgba(16,185,129,0.9)]"
                   }`}
                 style={{
                   opacity: draggedItem === word.id ? 0.3 : 1,
                 }}
               >
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.18),transparent_45%),radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.14),transparent_40%)]" />
                 {word.completed ? (
                   <Check className="w-4 h-4 sm:w-6 sm:h-6 lg:w-10 lg:h-10" />
                 ) : word.type === "image" && word.imageUrl ? (

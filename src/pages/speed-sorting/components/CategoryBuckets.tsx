@@ -29,24 +29,25 @@ export function CategoryBuckets({
           onDragLeave={onDragLeave}
           onDrop={(e) => onDrop(e, category.id)}
           className={`
-            bg-white text-black border-2 sm:border-3 rounded-xl lg:rounded-2xl 
+            relative overflow-hidden bg-white/5 text-cyan-50 border border-cyan-400/30 rounded-xl lg:rounded-2xl 
             px-4 py-3 sm:px-8 sm:py-6 lg:px-12 lg:py-8
             text-sm sm:text-lg lg:text-2xl font-semibold sm:font-bold text-center cursor-pointer
-            transform transition-all duration-200 hover:scale-105 shadow-md sm:shadow-lg
+            transform transition-all duration-200 hover:scale-105 shadow-[0_20px_80px_-50px_rgba(59,130,246,0.9)]
             w-full sm:w-auto min-w-[140px] sm:min-w-40 lg:min-w-[200px]
             min-h-20 sm:min-h-[120px] lg:min-h-[140px]
-            flex items-center justify-center
+            flex items-center justify-center backdrop-blur-lg
             ${
               dropFeedback?.categoryId === category.id
                 ? dropFeedback.isCorrect
-                  ? "scale-125 border-green-500 bg-green-100 shadow-xl sm:shadow-2xl"
-                  : "scale-90 border-red-500 bg-red-100 shadow-xl sm:shadow-2xl"
+                  ? "scale-125 border-emerald-400/80 bg-emerald-500/10 shadow-[0_25px_90px_-50px_rgba(16,185,129,0.9)]"
+                  : "scale-90 border-rose-400/80 bg-rose-500/10 shadow-[0_25px_90px_-50px_rgba(244,63,94,0.9)]"
                 : hoveredCategory === category.id
-                  ? "scale-110 border-blue-400 bg-blue-50 shadow-lg sm:shadow-xl"
-                  : "border-gray-300"
+                  ? "scale-110 border-cyan-300/80 bg-cyan-500/10 shadow-[0_20px_80px_-50px_rgba(6,182,212,0.9)]"
+                  : "border-cyan-400/30"
             }
           `}
         >
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.15),transparent_50%),radial-gradient(circle_at_80%_30%,rgba(16,185,129,0.12),transparent_45%)]" />
           {category.name}
         </div>
       ))}
