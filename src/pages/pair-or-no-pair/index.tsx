@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import api from "@/api/axios";
 
+// API URL with fallback for production (VITE_API_URL might be undefined in production build)
+const API_URL = import.meta.env.VITE_API_URL || "https://api.it-its.id";
 // Game Item Images
 import catImage from "./images/cat_image_1765100975047.png";
 import dogImage from "./images/dog_image_1765100992258.png";
@@ -784,14 +785,15 @@ const PairOrNoPairGame = () => {
 
     const fetchData = async () => {
       try {
-        console.log("[DEBUG] Fetching game data using axios...");
-        const response = await api.get(
-          `/api/game/game-type/pair-or-no-pair/${gameId}/play/public`,
+        console.log("[DEBUG] Fetching game data...");
+        const response = await fetch(
+          `${API_URL}/api/game/game-type/pair-or-no-pair/${gameId}/play/public`,
         );
-        console.log("[DEBUG] API Response:", response.data);
+        const result = await response.json();
+        console.log("[DEBUG] API Response:", result);
 
-        // Axios response is already parsed, data is in response.data.data
-        const gameData = response.data.data;
+        // API response: { success: true, data: { items: [...] } }
+        const gameData = result.data;
         console.log("[DEBUG] gameData:", gameData);
         console.log("[DEBUG] items:", gameData?.items);
 
@@ -1139,28 +1141,42 @@ const PairOrNoPairGame = () => {
     // Sound is handled by useEffect on gameState change
     try {
       // Update play count
-      await api.post("/api/game/play-count", { game_id: gameId });
+      await fetch(`${API_URL}/api/game/play-count`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_id: gameId }),
+      });
 
       // Submit score to leaderboard
-      const response = await api.post(
-        `/api/game/game-type/pair-or-no-pair/${gameId}/evaluate`,
+      const response = await fetch(
+        `${API_URL}/api/game/game-type/pair-or-no-pair/${gameId}/evaluate`,
         {
-          score: score,
-          difficulty: difficulty,
-          time_taken: timer,
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            score: score,
+            difficulty: difficulty,
+            time_taken: timer,
+          }),
         },
       );
 
-      if (response.data?.data?.rank) {
-        setLeaderboardRank(response.data.data.rank);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data?.rank) {
+          setLeaderboardRank(data.data.rank);
+        }
       }
 
       // Fetch leaderboard list
-      const lbResponse = await api.get(
-        `/api/game/game-type/pair-or-no-pair/${gameId}/leaderboard?difficulty=${difficulty}`,
+      const lbResponse = await fetch(
+        `${API_URL}/api/game/game-type/pair-or-no-pair/${gameId}/leaderboard?difficulty=${difficulty}`,
       );
-      if (lbResponse.data?.data) {
-        setLeaderboardList(lbResponse.data.data);
+      if (lbResponse.ok) {
+        const lbData = await lbResponse.json();
+        if (lbData.data) {
+          setLeaderboardList(lbData.data);
+        }
       }
     } catch (error) {
       console.error("Error updating play count:", error);
