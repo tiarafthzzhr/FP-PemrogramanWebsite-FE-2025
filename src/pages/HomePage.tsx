@@ -22,6 +22,7 @@ import iconHeart from "../assets/images/icon-heart.svg";
 import iconHeartSolid from "../assets/images/icon-heart-solid.svg";
 import iconPlay from "../assets/images/icon-play.svg";
 import iconVector from "../assets/images/icon-vector.svg";
+import airplaneGameImage from "../../public/assets/game/airplane/airplane.png";
 
 type GameTemplate = {
   id: string;
@@ -183,14 +184,16 @@ export default function HomePage() {
 
   const GameCard = ({ game }: { game: Game }) => {
     const handlePlayGame = () => {
-      const isAirplaneGame = game.name.toLowerCase().includes('airplane');
-      
+      const isAirplaneGame = game.name.toLowerCase().includes("airplane");
+
       if (isAirplaneGame) {
-        window.location.href = '/game/play/airplane';
+        window.location.href = "/game/play/airplane";
       } else {
         window.location.href = `/quiz/play/${game.id}`;
       }
     };
+
+    const isAirplaneGame = game.name.toLowerCase().includes("airplane");
 
     return (
       <Card
@@ -200,11 +203,13 @@ export default function HomePage() {
         <div className="p-4 pb-0">
           <img
             src={
-              game.thumbnail_image
-                ? `${import.meta.env.VITE_API_URL}/${game.thumbnail_image}`
-                : thumbnailPlaceholder
+              isAirplaneGame
+                ? airplaneGameImage
+                : game.thumbnail_image
+                  ? `${import.meta.env.VITE_API_URL}/${game.thumbnail_image}`
+                  : thumbnailPlaceholder
             }
-            alt={game.thumbnail_image ? game.name : "Placeholder Thumbnail"}
+            alt={game.name}
             className="w-full aspect-video object-cover rounded-md"
           />
         </div>
