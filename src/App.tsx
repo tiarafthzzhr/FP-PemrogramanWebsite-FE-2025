@@ -11,6 +11,8 @@ import EditQuiz from "./pages/EditQuiz";
 import Quiz from "./pages/Quiz";
 import ProtectedRoute from "./routes/ProtectedRoutes";
 
+import Puzzle from "./pages/puzzle";
+
 function App() {
   return (
     <>
@@ -20,6 +22,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/sandbox" element={<Sandbox />} />
         <Route path="/quiz/play/:id" element={<Quiz />} />
+
+        <Route path="/puzzle" element={<Puzzle />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
