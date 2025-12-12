@@ -5,10 +5,12 @@ import { Play, Pause, LogOut } from "lucide-react";
 import { Typography } from "@/components/ui/typography";
 import api from "@/api/axios";
 import { useCrosswordProgress } from "@/store/useCrosswordProgress";
-import { useSaveProgress, SaveProgressRequest } from "@/api/progress/useSaveProgress";
+import {
+  useSaveProgress,
+  type SaveProgressRequest,
+} from "@/api/progress/useSaveProgress";
 import { useAuthStore } from "@/store/useAuthStore";
 
-// Helper convert detik ke MM:SS
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60)
     .toString()
@@ -21,26 +23,23 @@ export default function PlayCrossword() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Hapus setIsPlaying karena tidak digunakan di kode saat ini
   const [isPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  // Crossword progress store + API
   const startGame = useCrosswordProgress((s) => s.startGame);
   const submitCorrect = useCrosswordProgress((s) => s.submitCorrect);
   const submitWrong = useCrosswordProgress((s) => s.submitWrong);
-  const useHint = useCrosswordProgress((s) => s.useHint);
+  // FIX: Ganti nama 'useHint' agar tidak dianggap sebagai React Hook oleh Linter
+  const triggerHint = useCrosswordProgress((s) => s.useHint);
   const finishGame = useCrosswordProgress((s) => s.finishGame);
   const toPayload = useCrosswordProgress((s) => s.toPayload);
   const resetProgress = useCrosswordProgress((s) => s.reset);
   const getDurationMs = useCrosswordProgress((s) => s.getDurationMs);
 
   const user = useAuthStore((s) => s.user);
-
   const saveMutation = useSaveProgress();
 
-  // Timer Effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying && !isPaused) {
@@ -51,17 +50,15 @@ export default function PlayCrossword() {
     return () => clearInterval(interval);
   }, [isPlaying, isPaused]);
 
-  // start when puzzle id changes / mounted
   useEffect(() => {
     if (!id) return;
     startGame(id, { title: undefined });
     return () => {
-      // keep progress on unmount; only explicit finish will save
+      // cleanup if needed
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // LOGIC EXIT BUTTON
   const handleExit = async () => {
     try {
       setIsPaused(true);
@@ -77,18 +74,17 @@ export default function PlayCrossword() {
     setIsPaused(!isPaused);
   };
 
-  // Handlers for example controls (simulate crossword actions)
   const handleSubmitWord = useCallback(
     (isCorrect: boolean) => {
       if (isCorrect) submitCorrect();
       else submitWrong();
     },
-    [submitCorrect, submitWrong]
+    [submitCorrect, submitWrong],
   );
 
   const handleUseHint = useCallback(() => {
-    useHint();
-  }, [useHint]);
+    triggerHint(); // Panggil fungsi yang sudah direname
+  }, [triggerHint]);
 
   const handleFinish = useCallback(async () => {
     finishGame();
@@ -163,22 +159,38 @@ export default function PlayCrossword() {
             >
               Crossword Grid Goes Here
             </Typography>
-              <div className="mt-6 flex flex-col items-center gap-3">
-                <div className="space-x-2">
-                  <Button onClick={() => handleSubmitWord(true)} size="sm">Simulate Correct</Button>
-                  <Button onClick={() => handleSubmitWord(false)} size="sm">Simulate Wrong</Button>
-                  <Button onClick={handleUseHint} size="sm">Simulate Hint</Button>
-                  <Button onClick={handleFinish} size="sm">Finish & Save</Button>
-                </div>
-
-                <div className="text-sm text-slate-500">
-                  <small>Duration (ms): {getDurationMs() ?? "-"}</small>
-                </div>
-
-                {saveMutation.isLoading && <div className="text-sm text-blue-600">Saving...</div>}
-                {saveMutation.isError && <div className="text-sm text-red-600">Failed to save progress.</div>}
-                {saveMutation.isSuccess && <div className="text-sm text-green-600">Progress saved.</div>}
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <div className="space-x-2">
+                <Button onClick={() => handleSubmitWord(true)} size="sm">
+                  Simulate Correct
+                </Button>
+                <Button onClick={() => handleSubmitWord(false)} size="sm">
+                  Simulate Wrong
+                </Button>
+                <Button onClick={handleUseHint} size="sm">
+                  Simulate Hint
+                </Button>
+                <Button onClick={handleFinish} size="sm">
+                  Finish & Save
+                </Button>
               </div>
+
+              <div className="text-sm text-slate-500">
+                <small>Duration (ms): {getDurationMs() ?? "-"}</small>
+              </div>
+
+              {saveMutation.isPending && (
+                <div className="text-sm text-blue-600">Saving...</div>
+              )}
+              {saveMutation.isError && (
+                <div className="text-sm text-red-600">
+                  Failed to save progress.
+                </div>
+              )}
+              {saveMutation.isSuccess && (
+                <div className="text-sm text-green-600">Progress saved.</div>
+              )}
+            </div>
           </div>
         )}
       </div>

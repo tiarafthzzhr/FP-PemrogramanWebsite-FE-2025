@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/ui/form-field";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea";
 import Dropzone from "@/components/ui/dropzone";
 import { Typography } from "@/components/ui/typography";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
@@ -18,7 +18,6 @@ interface CrosswordItem {
 export default function CreateCrossword() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
-  // Kembalikan setDescription agar bisa mengubah state
   const [description, setDescription] = useState("");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [items, setItems] = useState<CrosswordItem[]>([
@@ -30,6 +29,7 @@ export default function CreateCrossword() {
   ]);
 
   const addItem = () => setItems([...items, { word: "", clue: "" }]);
+
   const removeItem = (index: number) => {
     if (items.length > 5) setItems(items.filter((_, i) => i !== index));
     else toast.error("Minimum 5 words required");
@@ -50,28 +50,45 @@ export default function CreateCrossword() {
     if (!thumbnail) return toast.error("Thumbnail is required");
     if (!title.trim()) return toast.error("Title is required");
 
-    const validItems = items.filter(
-      (i) => i.word.length >= 2 && i.clue.length >= 3,
+    const validRawItems = items.filter(
+      (i) => i.word.trim().length >= 2 && i.clue.trim().length >= 3,
     );
-    if (validItems.length < 5)
+
+    if (validRawItems.length < 5)
       return toast.error("Please provide at least 5 valid words and clues");
+
+    const formattedWords = validRawItems.map((item, index) => ({
+      number: index + 1,
+      direction: "horizontal",
+      row_index: index * 2,
+      col_index: 0,
+      answer: item.word.toUpperCase(),
+      clue: item.clue,
+    }));
 
     const formData = new FormData();
     formData.append("name", title);
     formData.append("description", description);
     formData.append("thumbnail_image", thumbnail);
-    formData.append("is_publish_immediately", String(publish));
-    formData.append("items", JSON.stringify(validItems));
+    formData.append("is_publish_immediately", publish ? "true" : "false");
+    formData.append("words", JSON.stringify(formattedWords));
+
+    const minRows = formattedWords.length * 2 + 5;
+    formData.append("rows", String(minRows > 20 ? minRows : 20));
+    formData.append("cols", "20");
 
     try {
       await api.post("/api/game/game-type/crossword", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Crossword created successfully!");
-      navigate("/create-projects");
-    } catch (err) {
+      navigate("/my-projects");
+    } catch (err: unknown) {
+      // FIX: Ganti 'any' dengan 'unknown' dan casting di dalam
       console.error(err);
-      toast.error("Failed to create game");
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      const msg = errorObj?.response?.data?.message || "Failed to create game";
+      toast.error(msg);
     }
   };
 
@@ -96,7 +113,6 @@ export default function CreateCrossword() {
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          {/* Bagian Deskripsi Ditambahkan Di Sini */}
           <div className="grid w-full items-center gap-1.5">
             <Label>Description</Label>
             <Textarea

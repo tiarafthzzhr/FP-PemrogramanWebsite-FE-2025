@@ -7,7 +7,14 @@ import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 import Dropzone from "@/components/ui/dropzone";
 import { Typography } from "@/components/ui/typography";
-import { ArrowLeft, Plus, Save, Eye, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Save,
+  Eye,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -26,12 +33,6 @@ interface CrosswordItem {
   clue: string;
 }
 
-// Interface baru untuk menangani data raw dari API
-interface ApiCrosswordItem {
-  word?: string;
-  clue?: string;
-}
-
 export default function EditCrossword() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -44,13 +45,19 @@ export default function EditCrossword() {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [isPublish, setIsPublish] = useState(false);
 
-  const [items, setItems] = useState<CrosswordItem[]>([{ word: "", clue: "" }]);
+  // Default kosong, karena kita tidak bisa load jawaban lama dari backend
+  const [items, setItems] = useState<CrosswordItem[]>([]);
+  // State untuk menandai apakah user ingin mereset/mengganti semua kata
+  const [isEditingWords, setIsEditingWords] = useState(false);
 
   // Fetch Existing Data
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const response = await api.get(`/api/game/game-type/crossword/${id}`);
+        // [FIX] Gunakan endpoint play/private karena endpoint detail biasa tidak ada
+        const response = await api.get(
+          `/api/game/game-type/crossword/${id}/play/private`,
+        );
         const data = response.data.data;
 
         setTitle(data.name || "");
@@ -63,22 +70,11 @@ export default function EditCrossword() {
           );
         }
 
-        const fetchedItems = data.items || data.game_json?.items || [];
-
-        if (fetchedItems.length > 0) {
-          // Menggunakan tipe ApiCrosswordItem menggantikan any
-          setItems(
-            fetchedItems.map((i: ApiCrosswordItem) => ({
-              word: i.word || "",
-              clue: i.clue || "",
-            })),
-          );
-        } else {
-          setItems(Array(5).fill({ word: "", clue: "" }));
-        }
+        // Note: data.words ada, tapi tidak punya field 'answer' (disembunyikan backend),
+        // jadi kita tidak load ke form items agar tidak error/kosong.
       } catch (error) {
         console.error("Failed to fetch game:", error);
-        toast.error("Failed to load game data");
+        toast.error("Failed to load game data.");
         navigate("/my-projects");
       } finally {
         setLoading(false);
@@ -87,6 +83,18 @@ export default function EditCrossword() {
 
     if (id) fetchGame();
   }, [id, navigate]);
+
+  const handleStartEditingWords = () => {
+    setIsEditingWords(true);
+    // Siapkan 5 slot kosong untuk mulai ulang
+    setItems([
+      { word: "", clue: "" },
+      { word: "", clue: "" },
+      { word: "", clue: "" },
+      { word: "", clue: "" },
+      { word: "", clue: "" },
+    ]);
+  };
 
   const addItem = () => setItems([...items, { word: "", clue: "" }]);
 
@@ -116,11 +124,15 @@ export default function EditCrossword() {
     if (!thumbnail && !thumbnailPreview)
       return toast.error("Thumbnail is required");
 
-    const validItems = items.filter(
-      (i) => i.word.length >= 2 && i.clue.length >= 3,
-    );
-    if (validItems.length < 5)
-      return toast.error("Please provide at least 5 valid words and clues");
+    // Validasi words HANYA JIKA user memutuskan mengedit words
+    let validWords: { word: string; clue: string }[] = [];
+    if (isEditingWords) {
+      validWords = items.filter(
+        (i) => i.word.trim().length >= 2 && i.clue.trim().length >= 3,
+      );
+      if (validWords.length < 5)
+        return toast.error("Please provide at least 5 valid words and clues");
+    }
 
     setIsSubmitting(true);
 
@@ -128,13 +140,29 @@ export default function EditCrossword() {
       const formData = new FormData();
       formData.append("name", title);
       formData.append("description", description);
-      formData.append("is_publish", String(publishStatus));
+      formData.append("is_publish", publishStatus ? "true" : "false");
 
       if (thumbnail) {
         formData.append("thumbnail_image", thumbnail);
       }
 
-      formData.append("items", JSON.stringify(validItems));
+      // [LOGIKA UPDATE PARTIAL]
+      // Hanya kirim words jika user mengeditnya. Jika tidak, backend akan pakai grid lama.
+      if (isEditingWords) {
+        const formattedWords = validWords.map((item, index) => ({
+          number: index + 1,
+          direction: "horizontal",
+          row_index: index * 2,
+          col_index: 0,
+          answer: item.word.toUpperCase(),
+          clue: item.clue,
+        }));
+
+        formData.append("words", JSON.stringify(formattedWords));
+        const minRows = formattedWords.length * 2 + 5;
+        formData.append("rows", String(minRows > 20 ? minRows : 20));
+        formData.append("cols", "20");
+      }
 
       await api.patch(`/api/game/game-type/crossword/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -201,49 +229,74 @@ export default function EditCrossword() {
         <div className="bg-white p-6 rounded-xl border space-y-4">
           <div className="flex justify-between items-center">
             <Typography variant="h4">Words & Clues</Typography>
-            <Button size="sm" variant="outline" onClick={addItem}>
-              <Plus className="mr-2 h-4 w-4" /> Add Word
-            </Button>
+            {isEditingWords && (
+              <Button size="sm" variant="outline" onClick={addItem}>
+                <Plus className="mr-2 h-4 w-4" /> Add Word
+              </Button>
+            )}
           </div>
-          <div className="space-y-4">
-            {items.map((item, idx) => (
-              <div
-                key={idx}
-                className="flex gap-4 items-end border-b pb-4 last:border-0"
-              >
-                <div className="flex-1">
-                  <Label>Word (Answer)</Label>
-                  <input
-                    className="w-full border rounded-md px-3 py-2 mt-1 uppercase text-sm bg-slate-50"
-                    value={item.word}
-                    onChange={(e) =>
-                      handleItemChange(idx, "word", e.target.value)
-                    }
-                    placeholder="e.g. REACT"
-                  />
-                </div>
-                <div className="flex-[2]">
-                  <Label>Clue (Question)</Label>
-                  <input
-                    className="w-full border rounded-md px-3 py-2 mt-1 text-sm bg-slate-50"
-                    value={item.clue}
-                    onChange={(e) =>
-                      handleItemChange(idx, "clue", e.target.value)
-                    }
-                    placeholder="e.g. A JavaScript Library"
-                  />
-                </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-red-500 shrink-0"
-                  onClick={() => removeItem(idx)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+
+          {!isEditingWords ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-amber-800 font-semibold">
+                <AlertTriangle className="h-5 w-5" />
+                <span>Words are hidden</span>
               </div>
-            ))}
-          </div>
+              <p className="text-sm text-amber-700">
+                Existing crossword data is hidden by the server for security
+                reasons. You can update the Title/Description/Thumbnail without
+                changing the game content.
+              </p>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-fit mt-2"
+                onClick={handleStartEditingWords}
+              >
+                Overwrite with New Words
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex gap-4 items-end border-b pb-4 last:border-0"
+                >
+                  <div className="flex-1">
+                    <Label>Word (Answer)</Label>
+                    <input
+                      className="w-full border rounded-md px-3 py-2 mt-1 uppercase text-sm bg-slate-50"
+                      value={item.word}
+                      onChange={(e) =>
+                        handleItemChange(idx, "word", e.target.value)
+                      }
+                      placeholder="e.g. REACT"
+                    />
+                  </div>
+                  <div className="flex-[2]">
+                    <Label>Clue (Question)</Label>
+                    <input
+                      className="w-full border rounded-md px-3 py-2 mt-1 text-sm bg-slate-50"
+                      value={item.clue}
+                      onChange={(e) =>
+                        handleItemChange(idx, "clue", e.target.value)
+                      }
+                      placeholder="e.g. A JavaScript Library"
+                    />
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-red-500 shrink-0"
+                    onClick={() => removeItem(idx)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-4">
