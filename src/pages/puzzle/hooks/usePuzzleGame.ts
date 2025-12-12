@@ -10,8 +10,8 @@ interface UsePuzzleGameProps {
 
 export const usePuzzleGame = ({
   gameJson,
-  sessionId,
-  gameId,
+  //sessionId,
+  //gameId,
   onFinish,
 }: UsePuzzleGameProps) => {
   const [isPlaying, setIsPlaying] = useState(false);

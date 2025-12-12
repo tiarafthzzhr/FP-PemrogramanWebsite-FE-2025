@@ -31,7 +31,7 @@ export default function PlayPuzzle() {
     moveCount, 
     remainingTime, 
     isFinished,
-    startGame, 
+    //startGame, 
     pauseGame, 
     incrementMove, 
     finishGame 
@@ -39,7 +39,7 @@ export default function PlayPuzzle() {
     gameJson: gameJson!,
     sessionId: sessionId!,
     gameId: id!,
-    onFinish: (durationSec, moves) => {
+    onFinish: (/*durationSec*/ moves) => {
       finish({ sessionId: sessionId!, gameId: id!, moveCount: moves });
     },
   });
@@ -53,7 +53,7 @@ export default function PlayPuzzle() {
     img.src = gameJson.imageUrl;
     img.onload = () => {
       const canvas = canvasRef.current!;
-      const ctx = canvas.getContext("2d")!;
+    //  const ctx = canvas.getContext("2d")!;
       canvas.width = window.innerWidth - 100;
       canvas.height = window.innerHeight - 200;
 
@@ -92,7 +92,7 @@ export default function PlayPuzzle() {
     const ctx = canvas.getContext("2d")!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    pieces.forEach((piece, index) => {
+    pieces.forEach((piece/*, index*/) => {
       ctx.drawImage(piece.img, piece.x, piece.y);
       if (isPlaying) {
         // Snap check

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Tile, GridSize } from './types';
-import Timer from './timer';
+//import Timer from './timer';
 import PuzzleGrid from './PuzzleGrid';
 import Controls from './controls';
 
@@ -41,12 +41,12 @@ export function PuzzleGame() {
   const [grid, setGrid] = useState<Tile[][]>(() => createInitialGrid('3x3'));
   const [isPlaying, setIsPlaying] = useState(false);
   const [moves, setMoves] = useState(0);
-  const [time, setTime] = useState(0);
+  //const [time, setTime] = useState(0);
 
   const resetGame = () => {
     setGrid(createInitialGrid(gridSize));
     setMoves(0);
-    setTime(0);
+   // setTime(0);
     setIsPlaying(true);
   };
 
@@ -90,7 +90,6 @@ export function PuzzleGame() {
         </button>
       </div>
 
-      <Timer isPlaying={isPlaying} onTimeUpdate={setTime} />
       
       <PuzzleGrid 
         grid={grid} 
