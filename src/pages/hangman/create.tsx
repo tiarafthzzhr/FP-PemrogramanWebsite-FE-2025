@@ -6,8 +6,8 @@ import { TextareaField } from "@/components/ui/textarea-field";
 import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/ui/form-field";
 import Dropzone from "@/components/ui/dropzone";
-import { ArrowLeft, Plus, SaveIcon, Trash2, X } from "lucide-react";
-import { createHangmanTemplate } from "@/api/hangman";
+import { ArrowLeft, EyeIcon, Plus, SaveIcon, Trash2, X } from "lucide-react";
+import { createHangmanTemplate, updateHangmanTemplate } from "@/api/hangman";
 import api from "@/api/axios";
 
 interface QuestionItem {
@@ -87,7 +87,7 @@ function CreateHangmanTemplate() {
     return /^[a-zA-Z\s]+$/.test(answer.trim());
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (publish = false) => {
     if (!id && !thumbnail) return toast.error("Thumbnail is required");
     if (!title.trim()) return toast.error("Game title is required");
     if (questions.length < 2)
@@ -111,28 +111,17 @@ function CreateHangmanTemplate() {
     try {
       if (id) {
         // Update existing game
-        const formData = new FormData();
-        formData.append("name", title);
-        formData.append("description", description);
-        formData.append("is_question_shuffled", String(isQuestionShuffled));
-        formData.append("score_per_question", String(scorePerQuestion));
-        formData.append(
-          "questions",
-          JSON.stringify(
-            questions.map((q) => ({
-              question: q.question,
-              answer: q.answer.toUpperCase().trim(),
-            })),
-          ),
-        );
-        if (thumbnail) {
-          formData.append("thumbnail_image", thumbnail);
-        }
-
-        await api.put(`/api/game/game-type/hangman/${id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+        await updateHangmanTemplate(id, {
+          name: title,
+          description,
+          is_question_shuffled: isQuestionShuffled,
+          score_per_question: scorePerQuestion,
+          questions: questions.map((q) => ({
+            question: q.question,
+            answer: q.answer.toUpperCase().trim(),
+          })),
+          ...(thumbnail && { thumbnail }),
         });
-        toast.success("Game updated successfully!");
       } else {
         // Create new game
         await createHangmanTemplate({
@@ -145,10 +134,13 @@ function CreateHangmanTemplate() {
             answer: q.answer.toUpperCase().trim(),
           })),
           thumbnail: thumbnail!,
+          is_publish_immediately: publish,
         });
-        toast.success("Game created successfully!");
       }
-      navigate("/my-projects");
+      toast.success(
+        id ? "Game updated successfully!" : "Game created successfully!",
+      );
+      navigate("/my-projects", { state: { refresh: true } });
     } catch (err) {
       console.error("Error saving game:", err);
       toast.error(id ? "Failed to update game" : "Failed to create game");
@@ -353,16 +345,25 @@ function CreateHangmanTemplate() {
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4">
                 <Button
-                  variant="outline"
-                  onClick={() => navigate("/create-projects")}
-                  className="flex-1"
+                  variant="destructive"
+                  onClick={() => navigate("/my-projects")}
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
 
-                <Button onClick={handleSubmit} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={() => handleSubmit(false)}
+                  className="flex-1"
+                >
                   <SaveIcon className="w-4 h-4 mr-2" />
-                  {id ? "Update Game" : "Create Game"}
+                  Save Draft
+                </Button>
+
+                <Button onClick={() => handleSubmit(true)} className="flex-1">
+                  <EyeIcon className="w-4 h-4 mr-2" />
+                  Publish
                 </Button>
               </div>
             </div>

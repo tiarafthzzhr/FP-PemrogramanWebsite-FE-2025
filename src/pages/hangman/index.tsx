@@ -16,8 +16,13 @@ import {
   Minimize,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
-import { getHangmanLeaderboard } from "@/api/hangman";
+import {
+  getHangmanLeaderboard,
+  saveGameResult,
+  type LeaderboardEntry,
+} from "@/api/hangman";
 
 interface Question {
   id: string;
@@ -31,15 +36,6 @@ interface CompletedQuestion {
   answer: string;
   playerAnswer: string;
   isCorrect: boolean;
-}
-
-interface LeaderboardEntry {
-  id: string;
-  score: number;
-  time_taken: number;
-  user: {
-    username: string;
-  };
 }
 
 const MAX_LIVES = 5;
@@ -74,6 +70,9 @@ function HangmanGame() {
   const [gameStarted, setGameStarted] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [isGameOverPreview, setIsGameOverPreview] = useState(false);
 
   // Per-question state storage
   const [questionStates, setQuestionStates] = useState<
@@ -91,6 +90,17 @@ function HangmanGame() {
   const wrongSound = new Audio("/src/pages/hangman/audio/wrong.mp3");
   const completeSound = new Audio("/src/pages/hangman/audio/win.mp3");
   const gameOverSound = new Audio("/src/pages/hangman/audio/lose.mp3");
+
+  // Increment play count
+  const addPlayCount = async (gameId: string) => {
+    try {
+      await api.post("/api/game/play-count", {
+        game_id: gameId,
+      });
+    } catch (err) {
+      console.error("Failed to update play count:", err);
+    }
+  };
 
   // Fetch game template on mount
   useEffect(() => {
@@ -111,6 +121,7 @@ function HangmanGame() {
     const fetchLeaderboard = async () => {
       try {
         const data = await getHangmanLeaderboard(id!);
+        console.log("Leaderboard data:", data); // Debug log
         setLeaderboard(data);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
@@ -243,7 +254,29 @@ function HangmanGame() {
         };
         setCompletedQuestions((prev) => [...prev, completedQuestion]);
         setGameStatus("lost");
-        setIsCompletionModalOpen(true);
+        setIsGameOverPreview(true);
+        // Save score to backend with time and refresh leaderboard
+        Promise.all([
+          saveGameResult(id!, score, timeElapsed),
+          addPlayCount(id!),
+        ])
+          .then(() => {
+            // Auto-refresh leaderboard after save
+            return getHangmanLeaderboard(id!, 10);
+          })
+          .then((updatedLeaderboard) => {
+            setLeaderboard(updatedLeaderboard);
+            toast.success("Score saved!", { duration: 2000 });
+          })
+          .catch((err) => {
+            console.error("Failed to save game result:", err);
+            toast.error("Failed to save score");
+          });
+        // Briefly show hangman hanged before modal
+        setTimeout(() => {
+          setIsCompletionModalOpen(true);
+          setIsGameOverPreview(false);
+        }, 2500);
       }
       return;
     }
@@ -289,6 +322,23 @@ function HangmanGame() {
         setCompletedIndexes(nextCompletedIndexes);
         setGameStatus("won");
         setIsCompletionModalOpen(true);
+        // Save score to backend with time and refresh leaderboard
+        Promise.all([
+          saveGameResult(id!, newScore, timeElapsed),
+          addPlayCount(id!),
+        ])
+          .then(() => {
+            // Auto-refresh leaderboard after save
+            return getHangmanLeaderboard(id!, 10);
+          })
+          .then((updatedLeaderboard) => {
+            setLeaderboard(updatedLeaderboard);
+            toast.success("Score saved!", { duration: 2000 });
+          })
+          .catch((err) => {
+            console.error("Failed to save game result:", err);
+            toast.error("Failed to save score");
+          });
         return;
       }
 
@@ -372,7 +422,7 @@ function HangmanGame() {
   ].every((letter) => guessedLetters.includes(letter));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-6">
+    <div className="min-h-screen bg-linear-to-br from-slate-100 to-slate-200 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -405,11 +455,10 @@ function HangmanGame() {
                 correctAnswers={
                   completedQuestions.filter((q) => q.isCorrect).length
                 }
-                completedQuestions={completedQuestions}
                 onPlayAgain={handlePlayAgain}
                 onLeaderboard={() => {
                   setIsCompletionModalOpen(false);
-                  // TODO: Navigate to leaderboard or show leaderboard modal
+                  setIsLeaderboardModalOpen(true);
                 }}
                 onShowAnswers={() => setIsShowAnswersOpen(true)}
                 onClose={() => {
@@ -422,6 +471,98 @@ function HangmanGame() {
                 completedQuestions={completedQuestions}
                 onClose={() => setIsShowAnswersOpen(false)}
               />
+
+              {/* Leaderboard Overlay */}
+              {isLeaderboardModalOpen && (
+                <div className="absolute inset-0 bg-black/85 flex items-center justify-center z-50 rounded-2xl">
+                  <div className="bg-slate-900 rounded-2xl shadow-2xl w-[90%] max-w-4xl border border-slate-700">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/80 rounded-t-2xl">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-yellow-400" />{" "}
+                        Leaderboard
+                      </h3>
+                      <button
+                        onClick={() => setIsLeaderboardModalOpen(false)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="max-h-[65vh] overflow-y-auto">
+                      <div className="grid grid-cols-4 text-xs uppercase text-slate-400 px-6 py-3 border-b border-slate-800">
+                        <span>Rank</span>
+                        <span>User</span>
+                        <span>Score</span>
+                        <span>Time</span>
+                      </div>
+                      {leaderboard.length === 0 && (
+                        <div className="text-center text-slate-500 py-8">
+                          No scores yet.
+                        </div>
+                      )}
+                      {leaderboard.map((entry, index) => (
+                        <div
+                          key={`${entry.userId}-${index}`}
+                          className="grid grid-cols-4 items-center px-6 py-3 border-b border-slate-800 text-sm text-white bg-slate-900/40"
+                        >
+                          <span className="font-semibold text-slate-300">
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold">
+                            {entry.username}
+                          </span>
+                          <span className="text-slate-200">
+                            {entry.score} pts
+                          </span>
+                          <span className="text-slate-300 text-xs">
+                            {entry.timeTaken !== null &&
+                            entry.timeTaken !== undefined
+                              ? formatTime(entry.timeTaken)
+                              : "-"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pause Overlay */}
+              {isPauseModalOpen && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50 rounded-2xl">
+                  <div className="bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-800/80 rounded-t-2xl">
+                      <h3 className="text-lg font-bold text-white">
+                        Game Paused
+                      </h3>
+                      <button
+                        onClick={() => setIsPauseModalOpen(false)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-3">
+                      <button
+                        className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                        onClick={() => {
+                          setIsPauseModalOpen(false);
+                          handlePlayAgain();
+                        }}
+                      >
+                        Retry
+                      </button>
+                      <button
+                        className="w-full py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold border border-slate-700"
+                        onClick={() => setIsPauseModalOpen(false)}
+                      >
+                        Return
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Start Game Overlay */}
               {!gameStarted && (
                 <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50 rounded-2xl">
@@ -436,6 +577,37 @@ function HangmanGame() {
                     >
                       START
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Game Over Focus Overlay */}
+              {isGameOverPreview && (
+                <div
+                  className="absolute inset-0 z-40 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl"
+                  style={{
+                    animation: "hangman-focus-overlay 0.5s ease-out forwards",
+                  }}
+                >
+                  <div className="text-center text-red-200 text-sm uppercase tracking-[0.2em] mb-4 opacity-90">
+                    Game Over
+                  </div>
+                  <div
+                    className="scale-110 md:scale-125"
+                    style={{
+                      animation: "hangman-figure-pop 0.55s ease-out forwards",
+                    }}
+                  >
+                    <HangmanFigure incorrectGuesses={incorrectGuesses} />
+                  </div>
+                  <div className="mt-6">
+                    <WordDisplay
+                      word={currentQuestion.answer}
+                      guessedLetters={guessedLetters}
+                    />
+                  </div>
+                  <div className="mt-3 text-xs text-slate-400">
+                    Letters guessed shown before final drop
                   </div>
                 </div>
               )}
@@ -461,7 +633,13 @@ function HangmanGame() {
                 </div>
 
                 {/* Hangman Figure */}
-                <div className="mb-6">
+                <div
+                  className={`mb-6 transition duration-600 ease-out ${
+                    isGameOverPreview
+                      ? "scale-110 drop-shadow-[0_0_25px_rgba(239,68,68,0.45)]"
+                      : ""
+                  }`}
+                >
                   <HangmanFigure incorrectGuesses={incorrectGuesses} />
                 </div>
 
@@ -488,7 +666,11 @@ function HangmanGame() {
               {/* Bottom Navigation */}
               <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
                 {/* Menu Button (left) */}
-                <button className="text-white hover:bg-white/10 p-2 rounded transition">
+                <button
+                  className="text-white hover:bg-white/10 p-2 rounded transition"
+                  onClick={() => setIsPauseModalOpen(true)}
+                  title="Pause"
+                >
                   <svg
                     width="24"
                     height="24"
@@ -575,30 +757,73 @@ function HangmanGame() {
               Leaderboard
             </h3>
 
-            {/* Top 3 */}
+            {/* Podium Top 3 */}
             {leaderboard.length > 0 && (
-              <div className="mb-6 space-y-3">
-                {leaderboard.slice(0, 3).map((entry, index) => (
-                  <div
-                    key={entry.id}
-                    className="bg-gradient-to-r from-slate-100 to-slate-200 rounded-lg p-4"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl font-bold text-slate-400">
-                          #{index + 1}
-                        </div>
-                        <div className="font-bold text-slate-900">
-                          {entry.user.username}
-                        </div>
+              <div className="mb-8">
+                <div className="grid grid-cols-3 gap-3 items-end text-center">
+                  {/* 2nd place */}
+                  {leaderboard[1] ? (
+                    <div className="bg-slate-100 rounded-2xl p-4 border border-slate-200 shadow-md">
+                      <div className="text-lg font-bold text-slate-500">#2</div>
+                      <div className="text-base font-semibold text-slate-800 mt-1">
+                        {leaderboard[1].username}
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        {leaderboard[1].score} pts
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {leaderboard[1].timeTaken !== null &&
+                        leaderboard[1].timeTaken !== undefined
+                          ? `⏱️ ${formatTime(leaderboard[1].timeTaken)}`
+                          : "-"}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-slate-600">
-                      <span className="font-semibold">{entry.score} pts</span>
-                      <span>{formatTime(entry.time_taken)}</span>
+                  ) : (
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-dashed border-slate-200 text-slate-300">
+                      #2
+                    </div>
+                  )}
+
+                  {/* 1st place */}
+                  <div className="bg-gradient-to-br from-amber-300 via-amber-200 to-amber-100 rounded-2xl p-5 border border-amber-200 shadow-xl scale-[1.07]">
+                    <div className="text-2xl font-black text-amber-800">#1</div>
+                    <div className="text-lg font-bold text-amber-900 mt-1">
+                      {leaderboard[0]?.username || "-"}
+                    </div>
+                    <div className="text-base text-amber-800 font-semibold">
+                      {leaderboard[0] ? `${leaderboard[0].score} pts` : "-"}
+                    </div>
+                    <div className="text-xs text-amber-700">
+                      {leaderboard[0]?.timeTaken !== null &&
+                      leaderboard[0]?.timeTaken !== undefined
+                        ? `⏱️ ${formatTime(leaderboard[0].timeTaken!)}`
+                        : "-"}
                     </div>
                   </div>
-                ))}
+
+                  {/* 3rd place */}
+                  {leaderboard[2] ? (
+                    <div className="bg-slate-100 rounded-2xl p-4 border border-slate-200 shadow-md">
+                      <div className="text-lg font-bold text-slate-500">#3</div>
+                      <div className="text-base font-semibold text-slate-800 mt-1">
+                        {leaderboard[2].username}
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        {leaderboard[2].score} pts
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {leaderboard[2].timeTaken !== null &&
+                        leaderboard[2].timeTaken !== undefined
+                          ? `⏱️ ${formatTime(leaderboard[2].timeTaken)}`
+                          : "-"}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-dashed border-slate-200 text-slate-300">
+                      #3
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -607,7 +832,7 @@ function HangmanGame() {
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {leaderboard.slice(3).map((entry, index) => (
                   <div
-                    key={entry.id}
+                    key={entry.userId}
                     className="flex items-center justify-between py-2 px-3 hover:bg-slate-50 rounded transition"
                   >
                     <div className="flex items-center gap-3 flex-1">
@@ -615,14 +840,19 @@ function HangmanGame() {
                         #{index + 4}
                       </span>
                       <span className="font-medium text-slate-700">
-                        {entry.user.username}
+                        {entry.username}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-600">
-                      <span className="font-semibold">{entry.score}</span>
-                      <span className="text-slate-400">
-                        {formatTime(entry.time_taken)}
-                      </span>
+                    <div className="flex flex-col items-end gap-1 text-sm text-slate-600">
+                      <span className="font-semibold">{entry.score} pts</span>
+                      {entry.timeTaken !== null &&
+                      entry.timeTaken !== undefined ? (
+                        <span className="text-xs text-slate-500">
+                          ⏱️ {formatTime(entry.timeTaken)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">-</span>
+                      )}
                     </div>
                   </div>
                 ))}

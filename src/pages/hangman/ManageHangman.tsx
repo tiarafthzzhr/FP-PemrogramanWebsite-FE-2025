@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Pencil, Trash2, EyeOff } from "lucide-react";
+import { Pencil, Trash2, EyeOff, Eye } from "lucide-react";
 import api from "@/api/axios";
 import toast from "react-hot-toast";
+import { togglePublishHangman } from "@/api/hangman";
 
 interface HangmanGame {
   id: string;
@@ -39,7 +40,7 @@ export default function ManageHangman() {
     try {
       await api.delete(`/api/game/game-type/hangman/${id}`);
       setGames(games.filter((g) => g.id !== id));
-      toast.success("Game deleted successfully");
+      toast.success("Game deleted successfully!");
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;
@@ -47,17 +48,22 @@ export default function ManageHangman() {
     }
   };
 
-  const handleUnpublish = async (id: string) => {
+  const handleTogglePublish = async (id: string, currentStatus: boolean) => {
     try {
-      await api.post(`/api/game/game-type/hangman/${id}/unpublish`);
+      const newStatus = !currentStatus;
+      console.log("Toggling publish:", { id, currentStatus, newStatus });
+      await togglePublishHangman(id, newStatus);
       setGames(
-        games.map((g) => (g.id === id ? { ...g, published: false } : g)),
+        games.map((g) => (g.id === id ? { ...g, published: newStatus } : g)),
       );
-      toast.success("Game unpublished successfully");
+      toast.success(
+        `Game ${newStatus ? "published" : "unpublished"} successfully!`,
+      );
     } catch (err: unknown) {
+      console.error("Toggle publish error:", err);
       const message = (err as { response?: { data?: { message?: string } } })
         ?.response?.data?.message;
-      toast.error(message || "Failed to unpublish game");
+      toast.error(message || "Failed to update publish status");
     }
   };
 
@@ -101,15 +107,21 @@ export default function ManageHangman() {
                   >
                     <Trash2 className="w-4 h-4" /> Delete
                   </Button>
-                  {game.published && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleUnpublish(game.id)}
-                    >
-                      <EyeOff className="w-4 h-4" /> Unpublish
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant={game.published ? "outline" : "default"}
+                    onClick={() => handleTogglePublish(game.id, game.published)}
+                  >
+                    {game.published ? (
+                      <>
+                        <EyeOff className="w-4 h-4" /> Unpublish
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-4 h-4" /> Publish
+                      </>
+                    )}
+                  </Button>
                 </td>
               </tr>
             ))}

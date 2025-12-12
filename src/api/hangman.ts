@@ -12,13 +12,15 @@ interface CreateTemplateData {
   score_per_question: number;
   questions: HangmanQuestion[];
   thumbnail?: File;
+  is_publish_immediately?: boolean;
 }
 
-interface LeaderboardEntry {
+export interface LeaderboardEntry {
   userId: string;
   username: string;
   profilePicture?: string;
   score: number;
+  timeTaken?: number | null;
   createdAt: string;
 }
 
@@ -32,6 +34,10 @@ export const createHangmanTemplate = async (data: CreateTemplateData) => {
   formData.append("is_question_shuffled", String(data.is_question_shuffled));
   formData.append("score_per_question", String(data.score_per_question));
   formData.append("questions", JSON.stringify(data.questions));
+  formData.append(
+    "is_publish_immediately",
+    String(data.is_publish_immediately ?? false),
+  );
 
   if (data.thumbnail) {
     formData.append("thumbnail_image", data.thumbnail);
@@ -86,14 +92,13 @@ export const updateHangmanTemplate = async (
   if (data.name) formData.append("name", data.name);
   if (data.description !== undefined)
     formData.append("description", data.description);
-  if (data.is_publish_immediately !== undefined)
-    formData.append(
-      "is_publish_immediately",
-      String(data.is_publish_immediately),
-    );
+  if (data.is_question_shuffled !== undefined)
+    formData.append("is_question_shuffled", String(data.is_question_shuffled));
+  if (data.score_per_question !== undefined)
+    formData.append("score_per_question", String(data.score_per_question));
   if (data.questions)
     formData.append("questions", JSON.stringify(data.questions));
-  if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
+  if (data.thumbnail) formData.append("thumbnail_image", data.thumbnail);
 
   const response = await api.put(
     `/api/game/game-type/hangman/${gameId}`,
@@ -112,13 +117,45 @@ export const deleteHangmanTemplate = async (gameId: string) => {
 };
 
 /**
+ * Toggle publish status of a hangman game
+ */
+export const togglePublishHangman = async (
+  gameId: string,
+  isPublish: boolean,
+) => {
+  const payload = { is_publish: isPublish ? "true" : "false" };
+  console.log("Toggle publish API call:", { gameId, isPublish, payload });
+  const response = await api.patch(
+    `/api/game/game-type/hangman/${gameId}`,
+    payload,
+  );
+  console.log("Toggle publish response:", response.data);
+  return response.data;
+};
+
+/**
+ * Unpublish a hangman game
+ */
+export const unpublishHangman = async (gameId: string) => {
+  const response = await api.post(
+    `/api/game/game-type/hangman/${gameId}/unpublish`,
+  );
+  return response.data;
+};
+
+/**
  * Save game result to leaderboard
  */
-export const saveGameResult = async (gameId: string, score: number) => {
+export const saveGameResult = async (
+  gameId: string,
+  score: number,
+  timeTaken?: number,
+) => {
   const response = await api.post(
     `/api/game/game-type/hangman/${gameId}/result`,
     {
       score,
+      time_taken: timeTaken,
     },
   );
   return response.data;
