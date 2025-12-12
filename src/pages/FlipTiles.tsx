@@ -803,14 +803,17 @@ export default function FlipTiles() {
                 >
                   {/* Front Face (Zoom) */}
                   <div
-                    className={`absolute inset-0 w-full h-full backface-hidden rounded-xl flex items-center justify-center font-bold text-white shadow-inner border-4 border-slate-100 ${zoomedTileData.color} bg-gradient-to-br from-white/10 to-black/5`}
+                    className={`absolute inset-0 w-full h-full backface-hidden rounded-xl flex items-center justify-center font-bold text-white shadow-inner border-4 border-slate-100 ${zoomedTileData.color.startsWith("bg-") ? zoomedTileData.color : ""} bg-gradient-to-br from-white/10 to-black/5`}
                     style={{
                       backfaceVisibility: "hidden",
                       WebkitBackfaceVisibility: "hidden",
                       transform: "rotateY(0deg)",
+                      backgroundColor: zoomedTileData.color.startsWith("bg-")
+                        ? undefined
+                        : zoomedTileData.color,
                     }}
                   >
-                    <div className="p-8 text-center leading-tight break-words w-full max-h-full overflow-y-auto flex items-center justify-center text-4xl md:text-5xl">
+                    <div className="p-8 text-center leading-tight break-words w-full max-h-full overflow-y-auto flex items-center justify-center text-4xl md:text-6xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
                       {zoomedTileData.label}
                     </div>
                   </div>
