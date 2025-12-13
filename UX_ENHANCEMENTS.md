@@ -7,6 +7,7 @@
 Setiap kali kamu submit jawaban, akan ada feedback visual instant:
 
 #### ✅ Jawaban Benar
+
 - Input field berubah hijau (`bg-green-50`)
 - Border hijau (`border-green-500`)
 - Animasi **bounce** (melompat)
@@ -14,6 +15,7 @@ Setiap kali kamu submit jawaban, akan ada feedback visual instant:
 - Durasi: 600ms
 
 #### ❌ Jawaban Salah
+
 - Input field berubah merah (`bg-red-50`)
 - Border merah (`border-red-500`)
 - Animasi **shake** (bergetar kiri-kanan)
@@ -21,12 +23,14 @@ Setiap kali kamu submit jawaban, akan ada feedback visual instant:
 - Durasi: 600ms
 
 **Cara Kerja:**
+
 ```typescript
 // Check jawaban benar/salah
-const isCorrect = userAnswer.trim().toLowerCase() === question.correct_answer.toLowerCase();
+const isCorrect =
+  userAnswer.trim().toLowerCase() === question.correct_answer.toLowerCase();
 
 // Trigger animasi
-setAnswerFeedback(isCorrect ? 'correct' : 'wrong');
+setAnswerFeedback(isCorrect ? "correct" : "wrong");
 
 // Reset setelah 600ms
 setTimeout(() => setAnswerFeedback(null), 600);
@@ -41,6 +45,7 @@ Game sekarang mencatat waktu penyelesaian:
 - **Display**: Muncul di result screen dalam format `Xm Ys`
 
 **Example:**
+
 - Game dimulai: `setStartTime(Date.now())`
 - Game selesai: `const timeSpent = Math.floor((Date.now() - startTime) / 1000)`
 - Display: "2m 35s"
@@ -50,6 +55,7 @@ Game sekarang mencatat waktu penyelesaian:
 Result screen sekarang menampilkan **Top 5 Leaderboard**!
 
 #### Fitur Leaderboard:
+
 - **Ranking**: 🥇 Gold, 🥈 Silver, 🥉 Bronze, #4, #5
 - **Sorting**: Score tertinggi → Waktu tercepat
 - **Data Display**:
@@ -60,6 +66,7 @@ Result screen sekarang menampilkan **Top 5 Leaderboard**!
 - **Highlight**: Player "You" ditandai dengan background kuning dan scale lebih besar
 
 #### Mock Leaderboard Data:
+
 ```typescript
 const mockLeaderboard = [
   { player_name: "You", score: 40, completion_time: 145, percentage: 80 },
@@ -71,6 +78,7 @@ const mockLeaderboard = [
 ```
 
 #### Sorting Logic:
+
 ```typescript
 // Sort by score (descending), then by time (ascending)
 mockLeaderboard.sort((a, b) => {
@@ -84,12 +92,14 @@ mockLeaderboard.sort((a, b) => {
 ## 🎯 User Experience Flow
 
 ### Sebelum Update:
+
 1. User input jawaban
 2. Klik Next → Langsung soal berikutnya
 3. Finish → Muncul score
 4. No leaderboard
 
 ### Setelah Update:
+
 1. User input jawaban
 2. Klik Next → **Animasi feedback** (benar/salah)
 3. **Delay 600ms** untuk melihat animasi
@@ -100,6 +110,7 @@ mockLeaderboard.sort((a, b) => {
 ## 📊 Visual Changes
 
 ### Result Screen Layout:
+
 ```
 ┌─────────────────────────────┐
 │      🏆 Trophy Icon         │
@@ -145,11 +156,13 @@ mockLeaderboard.sort((a, b) => {
    - Added `.animate-shake` utility class
 
 ### New Dependencies:
+
 - None! Semua menggunakan existing libraries
 
 ## 🧪 Testing Guide
 
 ### Test 1: Animasi Jawaban Benar
+
 1. Akses mock game: `http://localhost:3000/type-the-answer/play/mock-game-123`
 2. Start game
 3. Soal 1: Input `8` (benar)
@@ -157,11 +170,13 @@ mockLeaderboard.sort((a, b) => {
 5. **Expected**: Input field hijau, bounce animation, checkmark icon
 
 ### Test 2: Animasi Jawaban Salah
+
 1. Soal 2: Input `10` (salah, seharusnya `6`)
 2. Tekan Enter
 3. **Expected**: Input field merah, shake animation, X icon
 
 ### Test 3: Leaderboard
+
 1. Selesaikan semua soal
 2. Check result screen
 3. **Expected**:
@@ -171,6 +186,7 @@ mockLeaderboard.sort((a, b) => {
    - Top 5 players sorted by score/time
 
 ### Test 4: Time Tracking Accuracy
+
 1. Start game, catat waktu mulai
 2. Jawab semua soal dengan cepat (~1 menit)
 3. Check completion time
@@ -179,6 +195,7 @@ mockLeaderboard.sort((a, b) => {
 ## 🎮 Mock Leaderboard Logic
 
 ### Scenario A: Perfect Score Fast Time
+
 ```
 Input:
 - Your Score: 50/50 (100%)
@@ -191,6 +208,7 @@ Leaderboard:
 ```
 
 ### Scenario B: Good Score Average Time
+
 ```
 Input:
 - Your Score: 30/50 (60%)
@@ -209,11 +227,13 @@ Leaderboard:
 ### GET Leaderboard Endpoint
 
 **Request:**
+
 ```
 GET /api/game/game-type/type-the-answer/:id/leaderboard
 ```
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -234,6 +254,7 @@ GET /api/game/game-type/type-the-answer/:id/leaderboard
 ```
 
 **Notes:**
+
 - Return top 5 players
 - Sort by score (desc), then by completion_time (asc)
 - Include current player with name "You"
@@ -242,16 +263,19 @@ GET /api/game/game-type/type-the-answer/:id/leaderboard
 ## 🎨 CSS Classes Used
 
 ### Animations:
+
 - `animate-[bounce_0.5s_ease-in-out]` - Built-in Tailwind bounce
 - `animate-[shake_0.5s_ease-in-out]` - Custom shake animation
 
 ### Colors:
+
 - **Correct**: `bg-green-50`, `border-green-500`, `text-green-600`
 - **Wrong**: `bg-red-50`, `border-red-500`, `text-red-600`
 - **Leaderboard**: `bg-gradient-to-br from-indigo-50 to-purple-50`
 - **Your Entry**: `bg-yellow-100`, `border-yellow-400`
 
 ### Effects:
+
 - `scale-105` - Slightly larger for "You" entry
 - `shadow-md` - Drop shadow for emphasis
 - `transition-all` - Smooth color/size transitions

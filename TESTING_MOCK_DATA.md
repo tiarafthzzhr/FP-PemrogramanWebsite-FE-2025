@@ -7,13 +7,16 @@ Karena backend API belum selesai dibuat oleh rekan tim backend, kita menggunakan
 ## 🎮 Cara Test Game
 
 ### Opsi 1: Dari Home Page
+
 1. Buka browser dan akses `http://localhost:3000`
 2. Di bagian atas halaman, akan ada kotak kuning **"🧪 Testing Mode"**
 3. Klik tombol **"🎮 Test Type the Answer Game"**
 4. Game akan langsung dimulai dengan 5 soal matematika
 
 ### Opsi 2: Direct URL
+
 Langsung akses URL ini di browser:
+
 ```
 http://localhost:3000/type-the-answer/play/mock-game-123
 ```
@@ -21,6 +24,7 @@ http://localhost:3000/type-the-answer/play/mock-game-123
 ## ✨ Fitur yang Bisa Ditest
 
 ### 1. **Gameplay**
+
 - ✅ Timer countdown (3 menit / 180 detik)
 - ✅ Progress bar menunjukkan soal ke berapa
 - ✅ Input jawaban dengan Enter key support
@@ -28,11 +32,13 @@ http://localhost:3000/type-the-answer/play/mock-game-123
 - ✅ Navigasi next/previous soal
 
 ### 2. **Game Controls**
+
 - ✅ Tombol Pause/Resume (ikon pause ⏸ di kanan atas)
 - ✅ Tombol Exit (ikon X di kiri atas dengan konfirmasi)
 - ✅ Time's Up otomatis submit
 
 ### 3. **Result Screen**
+
 - ✅ Tampilan bintang (1-3 stars berdasarkan persentase)
 - ✅ Score total dan max score
 - ✅ Jumlah jawaban benar vs total soal
@@ -48,6 +54,7 @@ http://localhost:3000/type-the-answer/play/mock-game-123
 **Total Questions:** 5 soal
 
 ### Soal dan Jawaban:
+
 1. **"Berapa hasil dari 5 + 3?"** → Jawaban: `8`
 2. **"Berapa hasil dari 10 - 4?"** → Jawaban: `6`
 3. **"Berapa hasil dari 7 × 2?"** → Jawaban: `14`
@@ -59,6 +66,7 @@ http://localhost:3000/type-the-answer/play/mock-game-123
 ## 🔍 Cara Kerja Mock Data
 
 ### File Structure:
+
 ```
 src/
   mocks/
@@ -70,6 +78,7 @@ src/
 ### Logic Flow:
 
 1. **Load Game Data**
+
    ```typescript
    if (id === "mock-game-123") {
      setGame(mockTypeTheAnswerGame);
@@ -78,6 +87,7 @@ src/
    ```
 
 2. **Submit Answers**
+
    ```typescript
    if (id === "mock-game-123") {
      const mockResult = mockCheckAnswers(finalAnswers);
@@ -96,67 +106,84 @@ src/
 ## 🚀 Testing Scenarios
 
 ### Test 1: Perfect Score
+
 Jawab semua soal dengan benar:
+
 - Soal 1: `8`
 - Soal 2: `6`
 - Soal 3: `14`
 - Soal 4: `4`
 - Soal 5: `22`
 
-**Expected Result:** 
+**Expected Result:**
+
 - ⭐⭐⭐ 3 Stars
 - Score: 50/50 (100%)
 - Feedback: "Perfect! Amazing work!"
 
 ### Test 2: Good Score
+
 Jawab 3-4 soal benar, sisanya salah
 
 **Expected Result:**
+
 - ⭐⭐ 2 Stars atau ⭐ 1 Star
 - Score: 30-40/50 (60-80%)
 - Feedback: "Great job!" atau "Good effort!"
 
 ### Test 3: Time's Up
+
 Biarkan timer habis sebelum selesai
 
 **Expected Result:**
+
 - Auto submit ketika timer = 0
 - Score sesuai jawaban yang sudah diisi
 
 ### Test 4: Pause & Resume
+
 1. Klik tombol Pause (⏸) di tengah game
 2. Timer berhenti
 3. Klik Resume untuk lanjut
 
 **Expected Result:**
+
 - Timer freeze saat pause
 - Game state tersimpan
 
 ### Test 5: Exit Game
+
 1. Klik tombol Exit (X) di tengah game
 2. Konfirmasi "Are you sure?"
 3. Klik OK
 
 **Expected Result:**
+
 - Redirect ke Home Page
 - Progress hilang (tidak tersimpan)
 
 ## 🔧 Troubleshooting
 
 ### Problem: Game tidak muncul
-**Solution:** 
+
+**Solution:**
+
 - Pastikan dev server frontend running: `npm run dev`
 - Check browser console (F12) untuk error
 - Pastikan file `src/mocks/typeTheAnswerMock.ts` ada
 
 ### Problem: Timer tidak jalan
+
 **Solution:**
+
 - Pastikan sudah klik tombol "Start Game"
 - Check apakah state `gameStarted` true
 - Pastikan tidak dalam state pause
 
 ### Problem: Jawaban tidak diterima
+
 **Solution:**
+
 - Tekan Enter setelah ketik jawaban
 - Atau klik tombol "Next Question"
 - Check apakah input field disabled
@@ -164,6 +191,7 @@ Biarkan timer habis sebelum selesai
 ## 📚 Next Steps
 
 ### Setelah Backend Ready:
+
 1. **Remove Mock Testing Box** dari HomePage.tsx
 2. **Test dengan Real API** menggunakan game ID asli
 3. **Verify API Endpoints:**
@@ -174,6 +202,7 @@ Biarkan timer habis sebelum selesai
 ### API Contract untuk Backend Developer:
 
 **GET /api/game/game-type/type-the-answer/:id/play/public**
+
 ```json
 {
   "data": {
@@ -198,6 +227,7 @@ Biarkan timer habis sebelum selesai
 **POST /api/game/game-type/type-the-answer/:id/check**
 
 Request Body:
+
 ```json
 {
   "answers": [
@@ -210,6 +240,7 @@ Request Body:
 ```
 
 Response:
+
 ```json
 {
   "data": {
@@ -225,6 +256,7 @@ Response:
 **POST /api/game/play-count**
 
 Request Body:
+
 ```json
 {
   "game_id": "string"
