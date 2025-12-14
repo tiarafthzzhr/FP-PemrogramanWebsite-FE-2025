@@ -25,12 +25,12 @@ const getIconComponent = (
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
-  
+
   const icons = LucideIcons as unknown as Record<
     string,
     React.ComponentType<{ className?: string }>
   >;
-  
+
   const IconComponent = icons[pascalCase];
 
   return IconComponent || LucideIcons.HelpCircle;

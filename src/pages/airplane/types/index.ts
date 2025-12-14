@@ -1,5 +1,11 @@
-export type GameStatus = 'menu' | 'loading' | 'playing' | 'paused' | 'gameover' | 'victory';
-export type GameMode = 'math' | 'general';
+export type GameStatus =
+  | "menu"
+  | "loading"
+  | "playing"
+  | "paused"
+  | "gameover"
+  | "victory";
+export type GameMode = "math" | "general";
 
 export interface Entity {
   x: number;

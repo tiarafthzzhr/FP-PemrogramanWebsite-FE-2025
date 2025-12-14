@@ -52,10 +52,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sandbox" element={<Sandbox />} />
-        
 
         <Route path="/quiz/play/:id" element={<Quiz />} />
-        
 
         <Route path="/open-the-box/play/:id" element={<OpenTheBoxGame />} />
         <Route path="/type-the-answer/play/:id" element={<TypeTheAnswer />} />
@@ -63,10 +61,16 @@ function App() {
         <Route path="/flip-tiles/play/:id" element={<FlipTiles />} />
         <Route path="/speed-sorting/play/:id" element={<SpeedSorting />} />
         <Route path="/anagram/play/:id" element={<PlayAnagram />} />
-        <Route path="/pair-or-no-pair/play/:gameId" element={<PairOrNoPairGame />} />
+        <Route
+          path="/pair-or-no-pair/play/:gameId"
+          element={<PairOrNoPairGame />}
+        />
         <Route path="/true-or-false/play/:id" element={<PlayTrueOrFalse />} />
         <Route path="/whack-a-mole/play/:gameId" element={<WhackAMoleGame />} />
-        <Route path="/sliding-puzzle/play/:id" element={<PlaySlidingPuzzle />} />
+        <Route
+          path="/sliding-puzzle/play/:id"
+          element={<PlaySlidingPuzzle />}
+        />
         <Route path="/airplane/play/:id" element={<AirplaneGeneralGame />} />
 
         <Route element={<ProtectedRoute />}>
@@ -81,29 +85,53 @@ function App() {
           <Route path="/open-the-box/edit/:id" element={<EditOpenTheBox />} />
           <Route path="/create-flip-tiles" element={<CreateFlipTiles />} />
           <Route path="/flip-tiles/edit/:id" element={<EditFlipTiles />} />
-          <Route path="/create-type-the-answer" element={<CreateTypeTheAnswer />} />
-          <Route path="/type-the-answer/edit/:id" element={<EditTypeTheAnswer />} />
-          
-          <Route path="/create-speed-sorting" element={<CreateSpeedSorting />} />
-          <Route path="/speed-sorting/edit/:id" element={<EditSpeedSorting />} />
-          
+          <Route
+            path="/create-type-the-answer"
+            element={<CreateTypeTheAnswer />}
+          />
+          <Route
+            path="/type-the-answer/edit/:id"
+            element={<EditTypeTheAnswer />}
+          />
+
+          <Route
+            path="/create-speed-sorting"
+            element={<CreateSpeedSorting />}
+          />
+          <Route
+            path="/speed-sorting/edit/:id"
+            element={<EditSpeedSorting />}
+          />
+
           <Route path="/create-anagram" element={<CreateAnagram />} />
           <Route path="/anagram/edit/:id" element={<EditAnagram />} />
-          
-          <Route path="/create-pair-or-no-pair" element={<CreatePairOrNoPair />} />
-          <Route path="/pair-or-no-pair/edit/:id" element={<EditPairOrNoPair />} />
-          
+
+          <Route
+            path="/create-pair-or-no-pair"
+            element={<CreatePairOrNoPair />}
+          />
+          <Route
+            path="/pair-or-no-pair/edit/:id"
+            element={<EditPairOrNoPair />}
+          />
+
           <Route path="/create-whack-a-mole" element={<CreateWhackAMole />} />
           <Route path="/whack-a-mole/edit/:id" element={<EditWhackAMole />} />
-          
+
           <Route path="/create-maze-chase" element={<CreateMazeChase />} />
           <Route path="/maze-chase/edit/:id" element={<EditMazeChase />} />
-          
+
           <Route path="/create-true-or-false" element={<CreateTrueOrFalse />} />
           <Route path="/true-or-false/edit/:id" element={<EditTrueOrFalse />} />
-          
-          <Route path="/create-sliding-puzzle" element={<CreateSlidingPuzzle />} />
-          <Route path="/sliding-puzzle/edit/:id" element={<EditSlidingPuzzle />} />
+
+          <Route
+            path="/create-sliding-puzzle"
+            element={<CreateSlidingPuzzle />}
+          />
+          <Route
+            path="/sliding-puzzle/edit/:id"
+            element={<EditSlidingPuzzle />}
+          />
         </Route>
       </Routes>
     </>
