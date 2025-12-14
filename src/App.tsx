@@ -82,13 +82,16 @@ function App() {
           element={<PairOrNoPairGame />}
         />
         <Route path="/true-or-false/play/:id" element={<PlayTrueOrFalse />} />
-        <Route path="/whack-a-mole/play/:gameId" element={<WhackAMoleGame />} />
         <Route
           path="/sliding-puzzle/play/:id"
           element={<PlaySlidingPuzzle />}
         />
 
         <Route element={<ProtectedRoute />}>
+          <Route
+            path="/whack-a-mole/play/:gameId"
+            element={<WhackAMoleGame />}
+          />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/my-projects" element={<MyProjectsPage />} />
           <Route path="/create-projects" element={<CreateProject />} />
