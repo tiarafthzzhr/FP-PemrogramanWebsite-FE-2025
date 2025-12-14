@@ -1,4 +1,4 @@
-export type GameStatus = 'playing' | 'paused' | 'gameover';
+export type GameStatus = "playing" | "paused" | "gameover";
 
 export interface Entity {
   x: number;
@@ -7,10 +7,7 @@ export interface Entity {
   height: number;
 }
 
-export interface Player extends Entity {
-  // Player specific properties can be added here
-  // Currently just inherits position and size
-}
+export type Player = Entity;
 
 export interface Cloud extends Entity {
   id: string;

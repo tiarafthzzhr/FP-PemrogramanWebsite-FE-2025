@@ -206,8 +206,6 @@ export default function HomePage() {
   };
 
   const GameCard = ({ game }: { game: Game }) => {
-    const isAirplaneGame = game.name.toLowerCase().includes("airplane");
-
     const handlePlayGame = () => {
       if (!game.game_template_slug) {
         console.error("Game template slug is missing for game:", game);
@@ -220,14 +218,14 @@ export default function HomePage() {
     // Prioritaskan gambar dari database (hasil upload)
     let imageUrl = thumbnailPlaceholder;
 
-    if (game.thumbnail_image && game.thumbnail_image !== 'default_image.jpg') {
-        // Cek apakah URL absolut atau relatif
-        if (game.thumbnail_image.startsWith('http')) {
-            imageUrl = game.thumbnail_image;
-        } else {
-            // Jika relatif (uploads/...), tambahkan URL Backend
-            imageUrl = `${import.meta.env.VITE_API_URL}/${game.thumbnail_image}`;
-        }
+    if (game.thumbnail_image && game.thumbnail_image !== "default_image.jpg") {
+      // Cek apakah URL absolut atau relatif
+      if (game.thumbnail_image.startsWith("http")) {
+        imageUrl = game.thumbnail_image;
+      } else {
+        // Jika relatif (uploads/...), tambahkan URL Backend
+        imageUrl = `${import.meta.env.VITE_API_URL}/${game.thumbnail_image}`;
+      }
     }
 
     return (
@@ -241,8 +239,8 @@ export default function HomePage() {
             alt={game.name}
             className="w-full aspect-video object-cover rounded-md"
             onError={(e) => {
-                // Fallback jika gambar rusak
-                e.currentTarget.src = thumbnailPlaceholder;
+              // Fallback jika gambar rusak
+              e.currentTarget.src = thumbnailPlaceholder;
             }}
           />
         </div>
