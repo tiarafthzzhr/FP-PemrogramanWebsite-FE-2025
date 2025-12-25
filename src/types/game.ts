@@ -8,6 +8,8 @@ export interface MathQuestion {
 
 export interface GameSettings {
   operation: string;
-  difficulty: string;
+  difficulty?: string;
   questionCount: number;
+  minNumber?: number;
+  maxNumber?: number;
 }
