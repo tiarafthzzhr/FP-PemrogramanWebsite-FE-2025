@@ -935,6 +935,7 @@ export default function EditMathGenerator() {
         minNumber: parseInt(minNumber),
         maxNumber: parseInt(maxNumber),
         questionCount: parseInt(questionCount),
+        difficulty: difficulty,
       },
       theme: selectedTheme,
     };

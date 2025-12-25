@@ -802,6 +802,7 @@ export default function MathGeneratorPage() {
         minNumber: parseInt(minNumber),
         maxNumber: parseInt(maxNumber),
         questionCount: parseInt(questionCount),
+        difficulty: difficulty,
       },
       theme: selectedTheme,
     };
