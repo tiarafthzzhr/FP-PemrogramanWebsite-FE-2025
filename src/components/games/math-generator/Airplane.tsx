@@ -59,7 +59,6 @@ export function Airplane({ questions, onComplete, onExit }: AirplaneProps) {
       angle = Math.max(-45, Math.min(45, angle));
 
       setCannonAngle(angle);
-      setMousePos({ x: e.clientX, y: e.clientY });
     };
 
     window.addEventListener("mousemove", handleMouseMove);

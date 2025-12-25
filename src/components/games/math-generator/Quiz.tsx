@@ -50,7 +50,9 @@ export function Quiz({
 
   useEffect(() => {
     // Shuffle options when question changes
-    setShuffledOptions(shuffleArray(question.options));
+    if (question.options) {
+      setShuffledOptions(shuffleArray(question.options));
+    }
   }, [currentQuestion, question.options]);
 
   const handleAnswerClick = (answer: number) => {
