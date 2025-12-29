@@ -14,6 +14,7 @@ Jelaskan fitur yang dikerjakan secara singkat.
 - [ ] Documentation Update
 
 ## Pull Request Requirement
+
 - [ ] Judul PR ini telah sesuai format
 - [ ] PR ini buat telah lolos quality check dan build test
 - [ ] Tidak ada file yang tidak berhubungan dengan FP masuk ke dalam PR ini
@@ -24,7 +25,7 @@ Jelaskan fitur yang dikerjakan secara singkat.
 - [ ] Flow Create, Edit, Delete, dan Play game telah mengikuti contoh (game Quiz)
 - [ ] Telah menambahkan screenshot dari setiap halaman yang dibuat
 
-## EPage List
+## Page List
 
 - Nama halaman
 
