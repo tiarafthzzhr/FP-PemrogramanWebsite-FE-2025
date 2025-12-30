@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "@/api/axios";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import toast from "react-hot-toast";
 import { Typography } from "@/components/ui/typography";
 import {
@@ -121,21 +121,24 @@ function PlaySlidingPuzzle() {
   };
 
   // Premium Toast Style
-  const toastStyle = {
-    style: {
-      background: "rgba(20, 20, 30, 0.95)",
-      color: "#fff",
-      border: "1px solid rgba(255, 107, 53, 0.5)",
-      fontFamily: "'Sen', sans-serif",
-      padding: "12px 20px",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-      borderRadius: "12px",
-    },
-    iconTheme: {
-      primary: "#ff6b35",
-      secondary: "#ffffff",
-    },
-  };
+  const toastStyle = useMemo(
+    () => ({
+      style: {
+        background: "rgba(20, 20, 30, 0.95)",
+        color: "#fff",
+        border: "1px solid rgba(255, 107, 53, 0.5)",
+        fontFamily: "'Sen', sans-serif",
+        padding: "12px 20px",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+        borderRadius: "12px",
+      },
+      iconTheme: {
+        primary: "#ff6b35",
+        secondary: "#ffffff",
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     const fetchPuzzle = async () => {
@@ -222,7 +225,7 @@ function PlaySlidingPuzzle() {
         audio.removeEventListener("timeupdate", handleTimeUpdate);
       };
     }
-  }, [isStarted, loading]);
+  }, [isStarted, loading, isMuted]);
 
   // Countdown effect
   useEffect(() => {
@@ -252,7 +255,7 @@ function PlaySlidingPuzzle() {
         }
       };
     }
-  }, [isLoadingGame]);
+  }, [isLoadingGame, isMuted]);
 
   // BGM Logic
   const bgmRef = useRef<HTMLAudioElement | null>(null);
@@ -328,7 +331,7 @@ function PlaySlidingPuzzle() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isStarted, isPaused, isFinished, puzzle?.time_limit]);
+  }, [isStarted, isPaused, isFinished, puzzle?.time_limit, toastStyle]);
 
   const shuffleTiles = useCallback(() => {
     if (!puzzle) return;
@@ -574,6 +577,33 @@ function PlaySlidingPuzzle() {
     }
   };
 
+  const applyHint = useCallback(
+    (path: any[], found: boolean) => {
+      // Determine how many steps to show
+      const stepsToShow = 1;
+
+      const selectedMoves = path.slice(0, stepsToShow);
+      setHintMoves(selectedMoves);
+      setShowHint(true);
+
+      setHintProgress({ current: 0, total: found ? path.length : 1 });
+      setUserHintsLeft((prev) => prev - 1);
+
+      if (found) {
+        toast.success(`Solution: ${path.length} steps to solve!`, toastStyle);
+      } else {
+        toast("Best next move calculated", { icon: "💡", ...toastStyle });
+      }
+
+      const timeout = found ? 8000 : 5000;
+      setTimeout(() => {
+        setShowHint(false);
+        setHintProgress(null);
+      }, timeout);
+    },
+    [toastStyle],
+  );
+
   // Effect to apply hint once it arrives if we are waiting
   useEffect(() => {
     if (isCalculatingHint && cachedHint) {
@@ -584,36 +614,7 @@ function PlaySlidingPuzzle() {
         toast.error("Could not find a valid move.", toastStyle);
       }
     }
-  }, [cachedHint, isCalculatingHint]);
-
-  const applyHint = (path: any[], found: boolean) => {
-    // Determine how many steps to show
-    const stepsToShow = 1;
-    // if (found) {
-    //     if (gridSize === 4) stepsToShow = Math.min(2, path.length);
-    //     else if (gridSize === 5) stepsToShow = Math.min(3, path.length);
-    //     else if (gridSize >= 6) stepsToShow = Math.min(4, path.length);
-    // }
-
-    const selectedMoves = path.slice(0, stepsToShow);
-    setHintMoves(selectedMoves);
-    setShowHint(true);
-
-    setHintProgress({ current: 0, total: found ? path.length : 1 });
-    setUserHintsLeft((prev) => prev - 1);
-
-    if (found) {
-      toast.success(`Solution: ${path.length} steps to solve!`, toastStyle);
-    } else {
-      toast("Best next move calculated", { icon: "💡", ...toastStyle });
-    }
-
-    const timeout = found ? 8000 : 5000;
-    setTimeout(() => {
-      setShowHint(false);
-      setHintProgress(null);
-    }, timeout);
-  };
+  }, [cachedHint, isCalculatingHint, applyHint, toastStyle]);
 
   const addPlayCount = async (gameId: string) => {
     try {
@@ -1310,6 +1311,120 @@ function PlaySlidingPuzzle() {
           </div>
         </div>
       )}
+      {/* ZOOM RECOMMENDATION MODAL */}
+      {!isStarted && !isLoadingGame && !isFinished && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: "rgba(0, 0, 0, 0.85)",
+            backdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(20, 20, 25, 0.95)",
+              border: "1px solid rgba(255, 107, 53, 0.3)",
+              borderRadius: "24px",
+              padding: "2.5rem",
+              maxWidth: "500px",
+              width: "90%",
+              textAlign: "center",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                margin: "0 auto 1.5rem",
+                background: "rgba(255, 107, 53, 0.1)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ff6b35"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <line x1="11" y1="8" x2="11" y2="14" />
+                <line x1="8" y1="11" x2="14" y2="11" />
+              </svg>
+            </div>
+
+            <h2
+              style={{
+                fontSize: "1.8rem",
+                fontWeight: 800,
+                color: "#fff",
+                marginBottom: "1rem",
+                fontFamily: "'Sen', sans-serif",
+              }}
+            >
+              Zoom Recommendation
+            </h2>
+
+            <p
+              style={{
+                color: "#a0aec0",
+                fontSize: "1.1rem",
+                lineHeight: 1.6,
+                marginBottom: "2rem",
+              }}
+            >
+              For the best visual experience, we recommend setting your browser
+              zoom to <strong style={{ color: "#ff6b35" }}>67%</strong>.
+              <br />
+              <br />
+              <span style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+                (Click the ⋮ menu in your browser → Zoom → Adjust to 67%)
+              </span>
+            </p>
+
+            <button
+              onClick={(e) => {
+                const modal = e.currentTarget.parentElement?.parentElement;
+                if (modal) modal.style.display = "none";
+              }}
+              style={{
+                background: "#ff6b35",
+                color: "white",
+                border: "none",
+                padding: "1rem 2.5rem",
+                borderRadius: "12px",
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "transform 0.2s",
+                fontFamily: "'Sen', sans-serif",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
+            >
+              Got it, I'm ready!
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Phoenix Logo - Fixed position, only on Start Screen */}
       {!isStarted && !isLoadingGame && (
         <img
