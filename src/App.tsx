@@ -189,10 +189,7 @@ function App() {
             path="/create-puzzle"
             element={<Navigate to="/games/puzzle/create" replace />}
           />
-          <Route
-            path="/puzzle/edit/:game_id"
-            element={<Navigate to="/games/puzzle/edit/:game_id" replace />}
-          />
+          <Route path="/puzzle/edit/:game_id" element={<EditPuzzle />} />
         </Route>
       </Routes>
     </>
