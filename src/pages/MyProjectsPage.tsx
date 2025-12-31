@@ -38,6 +38,7 @@ type Project = {
   creator_id?: string;
 };
 
+// Project Management Page (User & Admin)
 export default function MyProjectsPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);

@@ -72,6 +72,7 @@ import PlayPuzzle from "./pages/games/puzzle/play";
 import PreviewPuzzle from "./pages/games/puzzle/preview";
 import PuzzleHome from "./pages/games/puzzle/home";
 
+// Main App Component with Routing logic
 function App() {
   return (
     <>

@@ -68,6 +68,7 @@ type Game = {
   is_liked?: boolean;
 };
 
+// Homepage Component
 export default function HomePage() {
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
