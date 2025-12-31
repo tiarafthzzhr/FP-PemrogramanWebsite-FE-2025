@@ -125,8 +125,9 @@ export default function HomePage() {
 
         const response = await api.get(url);
 
-        setGames(
-          response.data.data.map(
+        const filteredGames = response.data.data
+          .filter((g: GameApiResponse) => g.game_template_slug !== "puzzle")
+          .map(
             (g: GameApiResponse) =>
               ({
                 id: g.id,
@@ -142,8 +143,8 @@ export default function HomePage() {
                 is_game_liked: g.is_game_liked || false,
                 is_liked: g.is_game_liked || false,
               }) as Game,
-          ),
-        );
+          );
+        setGames(filteredGames);
       } catch {
         setError("Failed to fetch games. Please try again later.");
         setGames([]);
@@ -216,6 +217,13 @@ export default function HomePage() {
         console.error("Game template slug is missing for game:", game);
         return;
       }
+
+      // Khusus Puzzle: Arahkan ke Puzzle Zone (Difficulty Selection)
+      if (game.game_template_slug === "puzzle") {
+        navigate("/games/puzzle");
+        return;
+      }
+
       navigate(`/${game.game_template_slug}/play/${game.id}`);
     };
 
@@ -271,7 +279,9 @@ export default function HomePage() {
             <div className="flex items-center gap-1.5">
               <User className="w-4 h-4 text-slate-900" />
               <span className="font-medium text-slate-900">
-                {game.creator_name || "Unknown User"}
+                {game.game_template_slug === "puzzle"
+                  ? "punya puzzle"
+                  : game.creator_name || "Unknown User"}
               </span>
             </div>
 
@@ -322,6 +332,23 @@ export default function HomePage() {
       </div>
     );
   }
+
+  // Static Puzzle Card Data
+  const puzzleCard: Game = {
+    id: "puzzle-main",
+    name: "Classic Puzzle",
+    description:
+      "Susun kembali gambar yang teracak! Pilih tingkat kesulitan dari Easy hingga Hard.",
+    thumbnail_image: null, // Use default or specific asset
+    game_template_name: "Puzzle",
+    game_template_slug: "puzzle",
+    total_liked: 0,
+    total_played: 0,
+    creator_id: "system",
+    creator_name: "WordIT Team",
+    is_game_liked: false,
+    is_liked: false,
+  };
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans">
@@ -522,15 +549,21 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.length > 0 ? (
-            games.map((game: Game) => <GameCard key={game.id} game={game} />)
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <Typography variant="muted">
-                No games found. Try adjusting your search.
-              </Typography>
-            </div>
+          {/* Always show the main Puzzle Card if not filtering out puzzle type */}
+          {(!gameTypeSlug || gameTypeSlug === "puzzle") && !searchQuery && (
+            <GameCard game={puzzleCard} />
           )}
+
+          {games.length > 0
+            ? games.map((game: Game) => <GameCard key={game.id} game={game} />)
+            : // Only show 'not found' if games are empty AND we are not showing puzzle card
+              ((gameTypeSlug && gameTypeSlug !== "puzzle") || searchQuery) && (
+                <div className="col-span-full text-center py-12">
+                  <Typography variant="muted">
+                    No games found. Try adjusting your search.
+                  </Typography>
+                </div>
+              )}
         </div>
       </main>
     </div>

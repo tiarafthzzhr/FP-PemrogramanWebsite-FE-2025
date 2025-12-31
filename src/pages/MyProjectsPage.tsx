@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "@/api/axios";
+import { useAuthStore } from "@/store/useAuthStore";
 
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/ui/layout/Navbar";
@@ -34,6 +35,7 @@ type Project = {
   is_published: boolean;
   game_template_name: string;
   game_template_slug: string;
+  creator_id?: string;
 };
 
 export default function MyProjectsPage() {
@@ -42,20 +44,57 @@ export default function MyProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const user = useAuthStore((state) => state.user);
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/api/auth/me/game");
-        setProjects(response.data.data);
-      } catch {
+
+        let rawData = [];
+        if (user?.role === "super_admin") {
+          // Super Admins should see ALL games.
+          // We use generic /api/game which usually lists all public games.
+          // Issues with "Drafts" of others not appearing is likely a backend restriction.
+          const response = await api.get("/api/game?limit=1000"); // Try to get everything
+          rawData = response.data.data || [];
+        } else {
+          const response = await api.get("/api/auth/me/game");
+          rawData = response.data.data || [];
+        }
+
+        // Map data to ensure consistency (handle potential nested game_template)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mappedData = rawData.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          thumbnail_image: item.thumbnail_image,
+          is_published: item.is_published,
+          // Handle different API response structures
+          game_template_slug:
+            item.game_template_slug ||
+            item.game_template?.slug ||
+            item.gameType?.slug ||
+            "puzzle",
+          game_template_name:
+            item.game_template_name ||
+            item.game_template?.name ||
+            item.gameType?.name ||
+            "Puzzle",
+          creator_id: item.creator_id, // Include creator_id if available
+        }));
+
+        setProjects(mappedData);
+      } catch (err) {
+        console.error("Project fetch error:", err);
         setError("Failed to fetch projects. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
     fetchProjects();
-  }, []);
+  }, [user]);
 
   const handleDeleteProject = async (
     projectTemplate: string,

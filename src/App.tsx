@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import CreateProject from "./pages/CreateProject";
 import CreateQuiz from "./pages/CreateQuiz";
 import EditQuiz from "./pages/EditQuiz";
@@ -66,6 +66,12 @@ import CreateCrossword from "./pages/crosswords/create";
 import PlayCrossword from "./pages/crosswords/index";
 import EditCrossword from "./pages/crosswords/edit";
 
+import CreatePuzzle from "./pages/games/puzzle/create";
+import EditPuzzle from "./pages/games/puzzle/edit";
+import PlayPuzzle from "./pages/games/puzzle/play";
+import PreviewPuzzle from "./pages/games/puzzle/preview";
+import PuzzleHome from "./pages/games/puzzle/home";
+
 function App() {
   return (
     <>
@@ -96,6 +102,9 @@ function App() {
           element={<PlaySlidingPuzzle />}
         />
         <Route path="/airplane/play/:id" element={<AirplaneGeneralGame />} />
+        <Route path="/games/puzzle" element={<PuzzleHome />} />
+        <Route path="/games/puzzle/play/:game_id" element={<PlayPuzzle />} />
+        <Route path="/puzzle/play/:game_id" element={<PlayPuzzle />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
@@ -168,6 +177,21 @@ function App() {
           <Route
             path="/sliding-puzzle/edit/:id"
             element={<EditSlidingPuzzle />}
+          />
+
+          <Route path="/games/puzzle/create" element={<CreatePuzzle />} />
+          <Route path="/games/puzzle/edit/:game_id" element={<EditPuzzle />} />
+          <Route
+            path="/games/puzzle/preview/:game_id"
+            element={<PreviewPuzzle />}
+          />
+          <Route
+            path="/create-puzzle"
+            element={<Navigate to="/games/puzzle/create" replace />}
+          />
+          <Route
+            path="/puzzle/edit/:game_id"
+            element={<Navigate to="/games/puzzle/edit/:game_id" replace />}
           />
         </Route>
       </Routes>
