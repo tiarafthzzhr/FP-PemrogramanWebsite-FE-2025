@@ -126,7 +126,7 @@ export default function HomePage() {
 
         const response = await api.get(url);
 
-        const filteredGames = response.data.data
+        const filteredGames = (response.data.data || [])
           .filter((g: GameApiResponse) => g.game_template_slug !== "puzzle")
           .map(
             (g: GameApiResponse) =>
