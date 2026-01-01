@@ -1,5 +1,4 @@
 import api from "./axios";
-import { useAuthStore } from "@/store/useAuthStore";
 
 interface HangmanQuestion {
   question: string;
@@ -25,9 +24,6 @@ export interface LeaderboardEntry {
   createdAt: string;
 }
 
-/**
- * Create a new hangman template/game
- */
 export const createHangmanTemplate = async (data: CreateTemplateData) => {
   const formData = new FormData();
   formData.append("name", data.name);
@@ -44,30 +40,18 @@ export const createHangmanTemplate = async (data: CreateTemplateData) => {
     formData.append("thumbnail_image", data.thumbnail);
   }
 
-  const token = useAuthStore.getState().token;
   const response = await api.post(`/api/game/game-type/hangman`, formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "multipart/form-data" },
   });
 
   return response.data;
 };
 
-/**
- * Get a hangman template by ID
- */
 export const getHangmanTemplate = async (gameId: string) => {
-  const token = useAuthStore.getState().token;
-  const response = await api.get(`/api/game/game-type/hangman/${gameId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await api.get(`/api/game/game-type/hangman/${gameId}`);
   return response.data;
 };
 
-/**
- * Get all hangman templates
- */
 export const getAllHangmanTemplates = async (userId?: string) => {
   const response = await api.get(`/api/game/game-type/hangman`, {
     params: {
@@ -77,23 +61,15 @@ export const getAllHangmanTemplates = async (userId?: string) => {
   return response.data;
 };
 
-/**
- * Get user's hangman templates
- */
 export const getUserHangmanTemplates = async () => {
-  const token = useAuthStore.getState().token;
   const response = await api.get(`/api/game/game-type/hangman`, {
     params: {
       userId: localStorage.getItem("userId"),
     },
-    headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };
 
-/**
- * Update a hangman template
- */
 export const updateHangmanTemplate = async (
   gameId: string,
   data: Partial<CreateTemplateData>,
@@ -113,71 +89,47 @@ export const updateHangmanTemplate = async (
     formData.append("is_publish", String(data.is_publish_immediately));
   if (data.thumbnail) formData.append("thumbnail_image", data.thumbnail);
 
-  const token = useAuthStore.getState().token;
   const response = await api.patch(
     `/api/game/game-type/hangman/${gameId}`,
     formData,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "multipart/form-data" },
     },
   );
 
   return response.data;
 };
 
-/**
- * Delete a hangman template
- */
 export const deleteHangmanTemplate = async (gameId: string) => {
-  const token = useAuthStore.getState().token;
-  const response = await api.delete(`/api/game/game-type/hangman/${gameId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await api.delete(`/api/game/game-type/hangman/${gameId}`);
   return response.data;
 };
 
-/**
- * Toggle publish status of a hangman game
- */
 export const togglePublishHangman = async (
   gameId: string,
   isPublish: boolean,
 ) => {
-  const token = useAuthStore.getState().token;
+  const formData = new FormData();
+  formData.append("is_publish", String(isPublish));
+
   const response = await api.patch(
     `/api/game/game-type/hangman/${gameId}`,
-    (() => {
-      const formData = new FormData();
-      formData.append("is_publish", String(isPublish));
-      return formData;
-    })(),
+    formData,
     {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "multipart/form-data" },
     },
   );
   return response.data;
 };
 
-/**
- * Unpublish a hangman game
- */
 export const unpublishHangman = async (gameId: string) => {
-  const token = useAuthStore.getState().token;
   const response = await api.post(
     `/api/game/game-type/hangman/${gameId}/unpublish`,
     {},
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    },
   );
   return response.data;
 };
 
-/**
- * Save game result to leaderboard
- */
 export const saveGameResult = async (
   gameId: string,
   score: number,
@@ -193,9 +145,6 @@ export const saveGameResult = async (
   return response.data;
 };
 
-/**
- * Get leaderboard for a game
- */
 export const getHangmanLeaderboard = async (
   gameId: string,
   limit: number = 10,

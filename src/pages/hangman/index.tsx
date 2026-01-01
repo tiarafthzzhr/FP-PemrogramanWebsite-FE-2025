@@ -109,25 +109,33 @@ function HangmanGame() {
   useEffect(() => {
     const fetchGameTemplate = async () => {
       try {
-        let endpoint = `/api/game/game-type/hangman/${id}`;
+        let endpoint = `/api/game/game-type/hangman/${id}/play/public`;
 
-        // Use public endpoint if not authenticated
-        if (!token) {
-          endpoint = `/api/game/game-type/hangman/${id}/play/public`;
+        try {
+          const response = await api.get(endpoint);
+          const gameData = response.data.data;
+
+          const questionsData = gameData.questions || [];
+          setQuestions(questionsData);
+          setGameTitle(gameData.name);
+          setCreatorUsername(gameData.creator_username || "Unknown");
+          setLoading(false);
+          return;
+        } catch (publicError) {
+          if (token) {
+            endpoint = `/api/game/game-type/hangman/${id}/play/private`;
+            const response = await api.get(endpoint);
+            const gameData = response.data.data;
+
+            const questionsData = gameData.questions || [];
+            setQuestions(questionsData);
+            setGameTitle(gameData.name);
+            setCreatorUsername(gameData.creator_username || "Unknown");
+            setLoading(false);
+            return;
+          }
+          throw publicError;
         }
-
-        const response = await api.get(endpoint);
-        const gameData = response.data.data;
-
-        // Handle both full game data and public game data
-        const questionsData =
-          gameData.questions || gameData.game_json?.questions || [];
-        setQuestions(questionsData);
-        setGameTitle(gameData.name);
-        setCreatorUsername(
-          gameData.creator_username || gameData.creator?.username || "Unknown",
-        );
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching game:", error);
         toast.error("Failed to load game");
@@ -138,7 +146,6 @@ function HangmanGame() {
     const fetchLeaderboard = async () => {
       try {
         const data = await getHangmanLeaderboard(id!);
-        console.log("Leaderboard data:", data); // Debug log
         setLeaderboard(data);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
