@@ -71,6 +71,15 @@ import CreateCrossword from "./pages/crosswords/create";
 import PlayCrossword from "./pages/crosswords/index";
 import EditCrossword from "./pages/crosswords/edit";
 
+// Import halaman Math Generator dari src2
+import MathGeneratorPage from "./pages/MathGeneratorPage";
+import MathPlay from "./pages/MathPlay";
+import MathPlayPreview from "./pages/MathPlayPreview";
+import EditMathGenerator from "./pages/EditMathGenerator";
+
+// Export types for game components
+export type { MathQuestion, GameSettings } from "./types/game";
+
 function App() {
   return (
     <>
@@ -89,6 +98,7 @@ function App() {
         <Route path="/speed-sorting/play/:id" element={<SpeedSorting />} />
         <Route path="/anagram/play/:id" element={<PlayAnagram />} />
         <Route path="/hangman/play/:id" element={<HangmanGame />} />
+        <Route path="/math-generator/play/:id" element={<MathPlay />} />
         <Route
           path="/pair-or-no-pair/play/:gameId"
           element={<PairOrNoPairGame />}
@@ -112,6 +122,19 @@ function App() {
 
           <Route path="/create-quiz" element={<CreateQuiz />} />
           <Route path="/quiz/edit/:id" element={<EditQuiz />} />
+
+          <Route
+            path="/create-math-generator"
+            element={<MathGeneratorPage />}
+          />
+          <Route
+            path="/math-generator/edit/:id"
+            element={<EditMathGenerator />}
+          />
+          <Route
+            path="/math-generator/play/preview/:id"
+            element={<MathPlayPreview />}
+          />
 
           <Route path="/create-airplane" element={<CreateAirplane />} />
           <Route path="/airplane/edit/:id" element={<EditAirplane />} />
