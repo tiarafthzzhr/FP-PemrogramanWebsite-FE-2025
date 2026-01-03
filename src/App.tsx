@@ -77,6 +77,13 @@ import MathPlay from "./pages/MathPlay";
 import MathPlayPreview from "./pages/MathPlayPreview";
 import EditMathGenerator from "./pages/EditMathGenerator";
 
+// Import halaman Puzzle Game (Assembly Puzzle)
+import CreatePuzzle from "./pages/games/puzzle/create";
+import EditPuzzle from "./pages/games/puzzle/edit";
+import PlayPuzzle from "./pages/games/puzzle/play";
+import PreviewPuzzle from "./pages/games/puzzle/preview";
+import PuzzleHome from "./pages/games/puzzle/home";
+
 // Export types for game components
 export type { MathQuestion, GameSettings } from "./types/game";
 
@@ -114,6 +121,8 @@ function App() {
         <Route path="/jeopardy/play/:id" element={<JeopardyBoard />} />
         <Route path="/jeopardy/play/:id/end" element={<JeopardyGameEnd />} />
         <Route path="/airplane/play/:id" element={<AirplaneGeneralGame />} />
+        <Route path="/puzzle" element={<PuzzleHome />} />
+        <Route path="/puzzle/play/:game_id" element={<PlayPuzzle />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
@@ -217,6 +226,11 @@ function App() {
             element={<EditSlidingPuzzle />}
           />
           <Route path="/jeopardy/edit/:id" element={<CreateJeopardy />} />
+
+          {/* Puzzle Game (Assembly Puzzle) Routes */}
+          <Route path="/create-puzzle" element={<CreatePuzzle />} />
+          <Route path="/puzzle/edit/:game_id" element={<EditPuzzle />} />
+          <Route path="/puzzle/preview/:game_id" element={<PreviewPuzzle />} />
         </Route>
       </Routes>
     </>
